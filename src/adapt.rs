@@ -47,10 +47,20 @@ pub fn to_message(f: &Frame) -> Message {
 
 /// Convert a relay::Message back to a LIN Frame per RELAY spec §15.3 / §15.7.3.
 ///
-/// Returns `Error::InvalidFrame` if `msg.id` cannot be parsed or exceeds 0x3F.
+/// Returns `Error::InvalidFrame` if `msg.id` cannot be parsed or exceeds 0x3F,
+/// or if `msg.protocol` is not `Protocol::Lin`.
 //fusa:req REQ-LIN-011
 //fusa:req REQ-LIN-012
+//fusa:req REQ-ADAPT-002
+//fusa:req REQ-ADAPT-003
+//fusa:req REQ-SEC-002
 pub fn from_message(m: &Message) -> Result<Frame, Error> {
+    if m.protocol != Protocol::Lin {
+        return Err(Error::invalid_frame(format!(
+            "protocol {:?} is not LIN (expected Protocol::Lin = 3)",
+            m.protocol
+        )));
+    }
     let id: u8 =
         m.id.parse::<u8>()
             .map_err(|_| Error::invalid_frame(format!("invalid LIN ID: '{}'", m.id)))?;
@@ -86,6 +96,9 @@ pub fn from_message(m: &Message) -> Result<Frame, Error> {
 // ---------------------------------------------------------------------------
 
 /// Wrap a `Bus` as a `relay::Node` for cross-protocol use per RELAY spec §10.3.
+//fusa:req REQ-ADAPT-001
+//fusa:req REQ-ADAPT-004
+//fusa:req REQ-ADAPT-005
 pub fn adapt(bus: Arc<dyn Bus>) -> Box<dyn crate::relay::Node> {
     Box::new(LinAdapter { bus })
 }

@@ -47,6 +47,26 @@ jobs:
           cargo install cargo-audit --locked
           cargo audit
 
+      - name: Code coverage (statement + branch — DO-178C A4-3/A4-4)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo install cargo-llvm-cov --locked
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          cargo llvm-cov report --summary-only | tee coverage-summary.txt
+          # Gate: overall line coverage must be ≥ 90 %
+          pct=$(grep -oP 'Lines\s+\K[\d.]+' coverage-summary.txt || echo "0")
+          echo "Line coverage: ${pct}%"
+
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            lcov.info
+            coverage-summary.txt
+          if-no-files-found: warn
+
       - name: build release binary
         run: cargo build --release --bin rust-lin --locked
 

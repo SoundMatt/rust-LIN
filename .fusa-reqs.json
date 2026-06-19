@@ -386,7 +386,57 @@
       "title": "Oversized payload rejected",
       "description": "Data longer than 8 bytes is rejected by validate_frame",
       "asil": "ASIL-B",
-      "rationale": "IEC 62443-4-1: Data longer than 8 bytes is rejected by validate_frame",
+      "rationale": "IEC 62443-4-1 SR-1 / TARA-001: Data longer than 8 bytes is rejected by validate_frame",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-002",
+      "title": "Non-LIN protocol message rejected by from_message",
+      "description": "from_message must return Err(InvalidFrame) when msg.protocol != Protocol::Lin (3)",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1 SR-2 / TARA-009 / H-12: from_message must return Err(InvalidFrame) when msg.protocol",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-003",
+      "title": "E2E sequence counter replay detected",
+      "description": "Receiver::unwrap must return SequenceGap when the received counter is not exactly last_seq+1",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1 SR-1 / TARA-007 / H-08: Receiver::unwrap must return SequenceGap when the received c",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-004",
+      "title": "LDF parser must not panic on malformed input",
+      "description": "ldf::parse must return Ok(Db) for any input \u2014 empty, truncated, or hostile \u2014 without panicking",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1 SR-1 / TARA-008: ldf::parse must return Ok(Db) for any input \u2014 empty, truncat",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-005",
+      "title": "E2E header too short rejected",
+      "description": "Receiver::unwrap must return HeaderTooShort when data.len() < 10",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1 SR-1 / H-07: Receiver::unwrap must return HeaderTooShort when data.len() ",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-006",
+      "title": "No unsafe code in library or binary",
+      "description": "No unsafe blocks exist in src/; rsfusa lint enforces this property on every CI run",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1 SI-1 / TARA-012: No unsafe blocks exist in src/; rsfusa lint enforces this pr",
       "tags": [
         "sec"
       ]

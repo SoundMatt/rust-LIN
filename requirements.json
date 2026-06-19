@@ -350,9 +350,54 @@
       "id": "REQ-SEC-001",
       "title": "Oversized payload rejected",
       "description": "Data longer than 8 bytes is rejected by validate_frame",
-      "source": "IEC 62443-4-1",
+      "source": "IEC 62443-4-1 SR-1 / TARA-001",
       "asil": "ASIL-B",
       "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-002",
+      "title": "Non-LIN protocol message rejected by from_message",
+      "description": "from_message must return Err(InvalidFrame) when msg.protocol != Protocol::Lin (3)",
+      "source": "IEC 62443-4-1 SR-2 / TARA-009 / H-12",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-003",
+      "title": "E2E sequence counter replay detected",
+      "description": "Receiver::unwrap must return SequenceGap when the received counter is not exactly last_seq+1",
+      "source": "IEC 62443-4-1 SR-1 / TARA-007 / H-08",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-004",
+      "title": "LDF parser must not panic on malformed input",
+      "description": "ldf::parse must return Ok(Db) for any input — empty, truncated, or hostile — without panicking",
+      "source": "IEC 62443-4-1 SR-1 / TARA-008",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-005",
+      "title": "E2E header too short rejected",
+      "description": "Receiver::unwrap must return HeaderTooShort when data.len() < 10",
+      "source": "IEC 62443-4-1 SR-1 / H-07",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-006",
+      "title": "No unsafe code in library or binary",
+      "description": "No unsafe blocks exist in src/; rsfusa lint enforces this property on every CI run",
+      "source": "IEC 62443-4-1 SI-1 / TARA-012",
+      "asil": "ASIL-B",
+      "verification": "static",
       "status": "implemented"
     },
     {

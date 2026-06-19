@@ -1,46 +1,78 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "tool": "rsfusa",
   "project": "rust-LIN",
-  "standard": "IEC 62443-4-1:2018",
+  "standard": "IEC 62443-4-1:2018 / IEC 62443-4-2:2019",
   "generated": "2026-06-19",
-  "security_level_target": "SL-1",
+  "security_level_target": "SL-2",
+  "security_level_achieved": "SL-2",
+  "notes": "SL-2 per IEC 62443-3-3: protection against intentional violation by skilled attackers using standard means. Applicable because rust-LIN may be integrated into control systems communicating over shared LIN bus segments.",
   "practices": [
     {
       "id": "SM-1",
       "title": "Security management",
       "status": "compliant",
-      "notes": "SECURITY.md, INCIDENT-RESPONSE.md, responsible disclosure policy"
+      "notes": "SECURITY.md, INCIDENT-RESPONSE.md, responsible disclosure policy documented"
     },
     {
       "id": "SM-2",
       "title": "Identification of responsibilities",
       "status": "compliant",
-      "notes": "Single maintainer identified in SECURITY.md"
+      "notes": "Single maintainer identified in SECURITY.md with noreply contact"
+    },
+    {
+      "id": "SM-3",
+      "title": "Security training",
+      "status": "partial",
+      "notes": "SECURITY.md and CODING_STANDARD.md document secure coding guidelines; formal training record not maintained at this scale"
     },
     {
       "id": "SR-1",
-      "title": "Security requirements",
+      "title": "Security requirements derivation",
       "status": "compliant",
-      "notes": "REQ-SEC-001, REQ-SEC-007, REQ-SEC-008 in requirements.json"
+      "notes": "REQ-SEC-001..008 in requirements.json, derived from TARA threat scenarios TARA-001..012"
+    },
+    {
+      "id": "SR-2",
+      "title": "Security requirements for software",
+      "status": "compliant",
+      "notes": "All REQ-SEC requirements allocated to source modules with //fusa:req annotations; traced in .fusa-reqs.json"
     },
     {
       "id": "SD-1",
-      "title": "Secure design",
+      "title": "Secure design principles",
       "status": "compliant",
-      "notes": "No unsafe code; input validation on all bus entry points"
+      "notes": "No unsafe code; all input validated at RELAY boundary; least-privilege — library has no network or file I/O itself"
+    },
+    {
+      "id": "SD-2",
+      "title": "Secure design review",
+      "status": "compliant",
+      "notes": "ARCHITECTURE.md documents all data flows; BOUNDARY_DIAGRAM.md defines trust boundaries; FMEA and TARA reviewed against design"
     },
     {
       "id": "SI-1",
       "title": "Secure implementation",
       "status": "compliant",
-      "notes": "cargo clippy -D warnings; no unsafe blocks; no dynamic code execution"
+      "notes": "cargo clippy -D warnings; no unsafe blocks; no dynamic code execution; all strings are owner-allocated (Vec/String)"
+    },
+    {
+      "id": "SI-2",
+      "title": "Security testing during implementation",
+      "status": "compliant",
+      "notes": "REQ-SEC-001..008 each have ≥1 //fusa:sec-test annotation; TARA countermeasures exercised by integration_test.rs"
     },
     {
       "id": "SVV-1",
       "title": "Security verification and validation",
       "status": "compliant",
-      "notes": "cargo audit in CI; security unit tests in integration_test.rs"
+      "notes": "cargo audit in CI; security unit tests in integration_test.rs; rsfusa cyber --dir . in safety CI job"
+    },
+    {
+      "id": "SVV-2",
+      "title": "Fuzz and negative testing",
+      "status": "partial",
+      "notes": "LDF parser fuzz-resistance tested with empty/malformed input (REQ-LDF-014, REQ-SEC-004); structured fuzzing via cargo-fuzz is planned (ROADMAP.md)"
     },
     {
       "id": "DM-1",
@@ -49,10 +81,22 @@
       "notes": "GitHub Issues; INCIDENT-RESPONSE.md; cargo audit automated"
     },
     {
+      "id": "DM-2",
+      "title": "Security defect tracking",
+      "status": "compliant",
+      "notes": "Security issues tracked in GitHub Issues with 'security' label; CVE assignment via maintainer disclosure process"
+    },
+    {
       "id": "SUM-1",
       "title": "Security update management",
       "status": "compliant",
       "notes": "Dependabot; cargo audit on every CI run; patch release process in INCIDENT-RESPONSE.md"
+    },
+    {
+      "id": "SUM-2",
+      "title": "Patch and update communication",
+      "status": "compliant",
+      "notes": "GitHub Releases include security advisory notes; SECURITY.md defines disclosure timeline (90 days)"
     }
   ],
   "threats": [
@@ -60,6 +104,7 @@
       "id": "T-01",
       "description": "Malformed LIN frame injected via RELAY adapter",
       "cwe": "CWE-20",
+      "tara_ref": "TARA-001",
       "mitigation": "from_message validates protocol, id range, and data via validate_frame",
       "status": "mitigated"
     },
@@ -67,6 +112,7 @@
       "id": "T-02",
       "description": "Oversized payload causing buffer issues",
       "cwe": "CWE-120",
+      "tara_ref": "TARA-001",
       "mitigation": "validate_frame rejects data.len() > 8; Rust Vec is bounds-safe",
       "status": "mitigated"
     },
@@ -74,6 +120,7 @@
       "id": "T-03",
       "description": "Integer overflow in checksum calculation",
       "cwe": "CWE-190",
+      "tara_ref": "TARA-002",
       "mitigation": "calc_checksum uses u16 accumulator with explicit carry-around; no overflow possible",
       "status": "mitigated"
     },
@@ -81,6 +128,7 @@
       "id": "T-04",
       "description": "Race condition in concurrent bus access",
       "cwe": "CWE-362",
+      "tara_ref": "TARA-004",
       "mitigation": "All shared state protected by tokio::sync::Mutex or atomic operations",
       "status": "mitigated"
     },
@@ -88,7 +136,56 @@
       "id": "T-05",
       "description": "Dependency vulnerability in third-party crates",
       "cwe": "CWE-1395",
+      "tara_ref": "TARA-005",
       "mitigation": "cargo audit runs on every CI build; Cargo.lock committed",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-06",
+      "description": "E2E CRC forgery via crafted protected payload",
+      "cwe": "CWE-345",
+      "tara_ref": "TARA-006",
+      "mitigation": "CRC-16/CCITT-FALSE detects unintentional corruption; full MAC is SEOOC assumption (REQ-SEOOC-008)",
+      "status": "accepted — residual risk acknowledged in TARA-006"
+    },
+    {
+      "id": "T-07",
+      "description": "Sequence counter replay attack via replayed protect()ed message",
+      "cwe": "CWE-294",
+      "tara_ref": "TARA-007",
+      "mitigation": "Receiver::unwrap rejects non-monotonic counter (SequenceGap); REQ-SEC-003",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-08",
+      "description": "LDF injection — hostile LDF file with out-of-range frame IDs",
+      "cwe": "CWE-20",
+      "tara_ref": "TARA-008",
+      "mitigation": "parse() never panics (REQ-LDF-014); ID validation at MasterNode level; REQ-SEC-004",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-09",
+      "description": "Cross-protocol message routing — non-LIN message accepted as LIN",
+      "cwe": "CWE-20",
+      "tara_ref": "TARA-009",
+      "mitigation": "from_message checks protocol == Protocol::Lin; REQ-ADAPT-002, REQ-SEC-002",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-10",
+      "description": "Denial of service via high-frequency master frame sends",
+      "cwe": "CWE-400",
+      "tara_ref": "TARA-010",
+      "mitigation": "rate_limit_per_sec subscriber option; back-pressure is non-blocking; REQ-SEC-007",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-11",
+      "description": "Unsafe code introduction enabling memory safety violations",
+      "cwe": "CWE-119",
+      "tara_ref": "TARA-012",
+      "mitigation": "rsfusa lint checks for unsafe blocks; REQ-SEC-006; cargo clippy -D warnings",
       "status": "mitigated"
     }
   ]
