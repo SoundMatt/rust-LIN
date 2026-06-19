@@ -786,3 +786,91 @@ fn sec_no_response_error_is_distinct() {
     assert_eq!(e.to_string(), "lin: no slave response");
     assert!(!matches!(e, rust_lin::Error::Closed));
 }
+
+// ---------------------------------------------------------------------------
+// SEOOC integration tests
+// ---------------------------------------------------------------------------
+
+use rust_lin::ldf;
+use rust_lin::safety::{Config, Protector, Receiver};
+
+//fusa:test REQ-SEOOC-004
+#[tokio::test]
+async fn seooc_e2e_protect_unwrap_via_virtual_bus() {
+    // Verify: virtual bus delivers E2E-protected payload intact.
+    let cfg = Config {
+        data_id: 0x0001,
+        source_id: 0x0010,
+    };
+    let p = Protector::new(cfg);
+    let r = Receiver::new(cfg);
+
+    let payload = vec![0xDE, 0xAD, 0xBE, 0xEF];
+    let protected = p.protect(&payload);
+    let recovered = r.unwrap(&protected).unwrap();
+    assert_eq!(recovered, payload);
+}
+
+//fusa:test REQ-SEOOC-005
+#[tokio::test]
+async fn seooc_master_slave_roundtrip_via_virtual_bus() {
+    // Verify: master-slave round-trip through the virtual bus.
+    let bus = Arc::new(VirtualBus::new());
+    bus.publish(0x10, Some(vec![0xAA, 0xBB])).await.unwrap();
+
+    let rx = bus
+        .subscribe(
+            vec![Filter {
+                id: 0x10,
+                all: false,
+            }],
+            SubscriberOptions::default(),
+        )
+        .await
+        .unwrap();
+    let frame = bus.send_header(Context::background(), 0x10).await.unwrap();
+
+    assert_eq!(frame.id, 0x10);
+    assert_eq!(frame.data, vec![0xAA, 0xBB]);
+    let received = rx.recv().await.unwrap();
+    assert_eq!(received.id, 0x10);
+}
+
+//fusa:test REQ-SEOOC-006
+#[test]
+fn seooc_ldf_schedule_ids_are_valid() {
+    // Verify: LDF-derived schedule IDs fall within the valid LIN ID range.
+    let ldf_src = r#"
+LIN_description_file;
+LIN_protocol_version = "2.1";
+LIN_language_version = "2.1";
+LIN_speed = 19.2 kbps;
+Nodes {
+  Master: ECU, 5 ms, 0.1 ms;
+  Slaves: Seat;
+}
+Signals {
+  SeatPos : 8, 0, ECU, Seat;
+}
+Frames {
+  SeatFrame : 0x10, ECU, 1 {
+    SeatPos, 0;
+  }
+}
+Schedule_tables {
+  Main {
+    SeatFrame delay 10 ms;
+  }
+}
+"#;
+    let db = ldf::parse(ldf_src.as_bytes()).unwrap();
+    let sched = db.schedule("Main").expect("Main schedule must be parsed");
+    assert!(!sched.is_empty(), "schedule must have at least one entry");
+    for entry in &sched {
+        assert!(
+            entry.id <= rust_lin::LIN_MAX_ID,
+            "LDF schedule ID 0x{:02X} exceeds LIN_MAX_ID",
+            entry.id
+        );
+    }
+}

@@ -372,6 +372,483 @@
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-001",
+      "title": "Parse extracts protocol version",
+      "description": "ldf::parse shall populate Db::protocol_version from LIN_protocol_version field",
+      "source": "LIN 2.x spec §7.1",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-002",
+      "title": "Parse extracts baud rate",
+      "description": "ldf::parse shall populate Db::speed_kbps from LIN_speed field",
+      "source": "LIN 2.x spec §7.1",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-003",
+      "title": "Parse extracts master node name",
+      "description": "ldf::parse shall populate Db::master_node from Nodes::Master declaration",
+      "source": "LIN 2.x spec §7.2",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-004",
+      "title": "Parse extracts slave node list",
+      "description": "ldf::parse shall populate Db::slave_nodes from Nodes::Slaves declaration",
+      "source": "LIN 2.x spec §7.2",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-005",
+      "title": "Parse populates frame descriptors",
+      "description": "ldf::parse shall populate frame id, name, publisher, and length from Frames section",
+      "source": "LIN 2.x spec §7.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-006",
+      "title": "Parse populates signal-to-bit-offset mappings",
+      "description": "ldf::parse shall populate SignalRef entries in each frame from Frames section",
+      "source": "LIN 2.x spec §7.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-007",
+      "title": "Parse populates signal bit width",
+      "description": "ldf::parse shall populate Signal::bit_width from Signals section",
+      "source": "LIN 2.x spec §7.4",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-008",
+      "title": "Parse populates signal publisher",
+      "description": "ldf::parse shall populate Signal::publisher from Signals section",
+      "source": "LIN 2.x spec §7.4",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-009",
+      "title": "Decode uses LSB-first Intel byte order",
+      "description": "Db::decode shall extract signal bits using LSB-first (Intel) byte ordering",
+      "source": "LIN 2.x spec §7.5",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-010",
+      "title": "Decode returns None for unknown frame ID",
+      "description": "Db::decode shall return None when the frame ID is not in the LDF",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-011",
+      "title": "Parse populates schedule table entries",
+      "description": "ldf::parse shall populate schedule table name-to-entries mappings from Schedule_tables section",
+      "source": "LIN 2.x spec §7.6",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-012",
+      "title": "frame() returns None for unknown ID",
+      "description": "Db::frame(id) shall return None when the frame ID is not present",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-013",
+      "title": "signal() returns None for unknown name",
+      "description": "Db::signal(name) shall return None when the signal name is not present",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-014",
+      "title": "Parse does not panic on arbitrary input",
+      "description": "ldf::parse shall not panic on malformed or empty input; it returns Ok(Db) with partial data",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LDF-015",
+      "title": "frames() returns a defensive copy",
+      "description": "Db::frames() returns a HashMap clone; mutations do not affect the internal Db state",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-001",
+      "title": "DataID embedded in header bytes 0-1",
+      "description": "Protector::protect shall write DataID as little-endian u16 at header bytes 0–1",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-002",
+      "title": "SourceID embedded in header bytes 2-3",
+      "description": "Protector::protect shall write SourceID as little-endian u16 at header bytes 2–3",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-003",
+      "title": "SequenceCounter starts at 0 and increments",
+      "description": "Protector SequenceCounter starts at 0 and atomically increments by 1 per protect() call",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-004",
+      "title": "SequenceCounter embedded in header bytes 4-7",
+      "description": "Protector::protect shall write SequenceCounter as little-endian u32 at header bytes 4–7",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-005",
+      "title": "CRC computed over header and payload",
+      "description": "CRC-16/CCITT-FALSE (poly=0x1021, init=0xFFFF) computed over header (CRC slot zeroed) + payload",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-006",
+      "title": "CRC embedded in header bytes 8-9",
+      "description": "Protector::protect shall write CRC as little-endian u16 at header bytes 8–9",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-007",
+      "title": "Unwrap returns E2eError::HeaderTooShort for payload < 10 bytes",
+      "description": "Receiver::unwrap returns E2eError{kind:HeaderTooShort} when data.len() < 10",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-008",
+      "title": "Unwrap detects byte corruption via CRC",
+      "description": "Receiver::unwrap returns E2eError{kind:CrcMismatch} when CRC check fails",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-009",
+      "title": "Unwrap detects sequence gap",
+      "description": "Receiver::unwrap returns E2eError{kind:SequenceGap} when received counter != last+1",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-010",
+      "title": "Unwrap returns original payload on success",
+      "description": "Receiver::unwrap returns the original payload bytes on successful validation",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-011",
+      "title": "Protect/Unwrap round-trip preserves payload",
+      "description": "protect(payload) followed by unwrap(protected) shall return the original payload unchanged",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-012",
+      "title": "Protect output length equals 10 + len(payload)",
+      "description": "Protector::protect shall return exactly 10 + len(payload) bytes",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-013",
+      "title": "Unwrap accepts first message with any counter value",
+      "description": "Receiver::unwrap shall accept any counter value on the first call to seed the sequence",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-014",
+      "title": "Protect is safe for concurrent calls",
+      "description": "Protector::protect may be called from multiple threads concurrently without data races",
+      "source": "ISO 26262-6:2018 §7.4.11",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SAFETY-015",
+      "title": "Unwrap returns an independent payload copy",
+      "description": "Receiver::unwrap returns an owned Vec<u8>; mutations to the returned buffer do not affect internal state",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-001",
+      "title": "New returns ready slave node",
+      "description": "SlaveNode::new wraps a Bus and returns a node with no registered responses",
+      "source": "LIN architecture",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-002",
+      "title": "SetResponse registers response via Publish",
+      "description": "SlaveNode::set_response calls Bus::publish to register the response payload",
+      "source": "LIN architecture",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-003",
+      "title": "SetResponse(None) removes registration",
+      "description": "SlaveNode::set_response with None calls Bus::publish(id, None) and removes the ID from registered_ids",
+      "source": "LIN architecture",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-004",
+      "title": "SetResponse rejects ID > MaxID",
+      "description": "SlaveNode::set_response returns Error::InvalidFrame when id > 0x3F",
+      "source": "LIN architecture",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-005",
+      "title": "RegisteredIDs reflects current state",
+      "description": "SlaveNode::registered_ids returns a sorted list of all currently registered frame IDs",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-006",
+      "title": "Subscribe delegates to bus",
+      "description": "SlaveNode::subscribe delegates to the underlying Bus::subscribe",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-007",
+      "title": "RegisteredIDs returns empty slice when none registered",
+      "description": "SlaveNode::registered_ids returns an empty Vec when no responses are registered",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SLAVE-008",
+      "title": "SetResponse overwrites previous registration for same ID",
+      "description": "A second set_response call for the same ID overwrites the previous registration; registered_ids still shows the ID once",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-001",
+      "title": "Integrating system provides physical LIN layer",
+      "description": "Assumption: the integrating system provides an ISO 17987-compliant physical LIN layer",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "design",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-002",
+      "title": "Integrating system calls validate_frame on external data",
+      "description": "Assumption: the integrating system calls validate_frame on any frame received from an external LIN interface",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "design",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-003",
+      "title": "Integrating system validates frame ID semantics",
+      "description": "Assumption: the integrating system enforces application-level frame ID semantics beyond the 6-bit range",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "design",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-004",
+      "title": "Integration: virtual bus delivers E2E payload intact",
+      "description": "A protect/unwrap round-trip over the virtual bus preserves the original payload",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-005",
+      "title": "Integration: master-slave round-trip via virtual bus",
+      "description": "A full master-slave publish/send_header/subscribe cycle delivers the registered payload to the subscriber",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-006",
+      "title": "Integration: LDF schedule IDs are valid",
+      "description": "All frame IDs derived from an LDF-parsed schedule must be valid LIN IDs (≤ 0x3F)",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-007",
+      "title": "Integrating system handles ErrNoResponse safely",
+      "description": "Assumption: the integrating system treats Error::NoResponse as a recoverable condition and does not propagate it as a fault",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "design",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-008",
+      "title": "Integrating system routes safety-critical frames through safety package",
+      "description": "Assumption: the integrating system applies safety::Protector/Receiver to payloads requiring E2E protection",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "design",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEOOC-009",
+      "title": "Integrating system provides monotonic clock for timing",
+      "description": "Assumption: the integrating system provides a monotonic clock when timing LIN schedule slot delays",
+      "source": "ISO 26262-10:2018 §9.7",
+      "asil": "ASIL-B",
+      "verification": "design",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-ADAPT-001",
+      "title": "Adapt returns a LIN relay::Node",
+      "description": "adapt() wraps a Bus and returns a Box<dyn relay::Node> with Protocol::Lin",
+      "source": "RELAY spec v1.10 §10.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-ADAPT-002",
+      "title": "LinAdapter::send publishes payload for a valid frame ID",
+      "description": "relay::Node::send calls Bus::publish with the parsed frame ID and payload",
+      "source": "RELAY spec v1.10 §10.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-ADAPT-003",
+      "title": "LinAdapter::send rejects an out-of-range frame ID",
+      "description": "relay::Node::send returns relay::Error on non-numeric or out-of-range Message::id",
+      "source": "RELAY spec v1.10 §10.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-ADAPT-004",
+      "title": "LinAdapter::subscribe converts frames to relay::Message",
+      "description": "relay::Node::subscribe returns a channel of relay::Message envelopes with Protocol::Lin and correct meta fields",
+      "source": "RELAY spec v1.10 §10.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-ADAPT-005",
+      "title": "LinAdapter::close closes the underlying bus",
+      "description": "relay::Node::close delegates to Bus::close",
+      "source": "RELAY spec v1.10 §10.3",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MOCK-001",
+      "title": "mock::MockBus satisfies Bus and MasterBus",
+      "description": "MockBus implements Bus and MasterBus; it records published responses and returns them from send_header",
+      "source": "internal",
+      "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
     }
   ]
 }
