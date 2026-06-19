@@ -1,0 +1,7 @@
+{
+  "tool": "rsfusa",
+  "version": "0.5",
+  "project": "rust-LIN",
+  "asil": "ASIL-B",
+  "protocol": "LIN"
+}

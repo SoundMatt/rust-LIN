@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "tool": "rsfusa",
+  "project": "rust-LIN",
+  "standard": "ISO/SAE 21434:2021 (TARA)",
+  "generated": "2026-06-19",
+  "threat_scenarios": [
+    {
+      "id": "TARA-001",
+      "threat": "Malformed frame injection via RELAY adapter send()",
+      "asset": "LIN bus frame integrity",
+      "attack_path": "Attacker supplies JSON Message with out-of-range id or oversized payload",
+      "attack_feasibility": "Low",
+      "impact": "Medium",
+      "risk_level": "Low",
+      "countermeasures": [
+        "from_message validates protocol == Lin (3)",
+        "validate_frame enforces id ≤ 0x3F and len ≤ 8",
+        "REQ-SEC-001, REQ-SEC-008"
+      ],
+      "residual_risk": "Negligible"
+    },
+    {
+      "id": "TARA-002",
+      "threat": "Checksum bypass — attacker forges checksum field in Message meta",
+      "asset": "LIN bus data integrity",
+      "attack_path": "Attacker supplies meta[lin.checksum] = arbitrary value in from_message",
+      "attack_feasibility": "Medium",
+      "impact": "Medium",
+      "risk_level": "Medium",
+      "countermeasures": [
+        "from_message parses checksum from meta for Frame reconstruction only",
+        "send_header recomputes checksum before broadcast",
+        "validate_frame called before broadcast"
+      ],
+      "residual_risk": "Low"
+    },
+    {
+      "id": "TARA-003",
+      "threat": "Subscriber starvation via back-pressure manipulation",
+      "asset": "Bus availability",
+      "attack_path": "Attacker subscribes with depth=1 and DropNewest to cause frame loss",
+      "attack_feasibility": "Low",
+      "impact": "Low",
+      "risk_level": "Low",
+      "countermeasures": [
+        "Back-pressure never blocks send_header (non-blocking push)",
+        "Metrics track dropped frame counts",
+        "REQ-LIN-017"
+      ],
+      "residual_risk": "Negligible"
+    },
+    {
+      "id": "TARA-004",
+      "threat": "Race condition in concurrent send_header calls",
+      "asset": "Data correctness",
+      "attack_path": "Two concurrent callers both succeed and broadcast different frames for same id",
+      "attack_feasibility": "Low",
+      "impact": "Low",
+      "risk_level": "Low",
+      "countermeasures": [
+        "BusInner protected by tokio::sync::Mutex",
+        "Concurrent safety integration test (10 tasks, 10 frames each)"
+      ],
+      "residual_risk": "Negligible"
+    },
+    {
+      "id": "TARA-005",
+      "threat": "Dependency supply-chain vulnerability",
+      "asset": "Software integrity",
+      "attack_path": "Malicious or vulnerable version of a dependency crate introduced",
+      "attack_feasibility": "Low",
+      "impact": "High",
+      "risk_level": "Medium",
+      "countermeasures": [
+        "cargo audit on every CI run",
+        "Cargo.lock committed (reproducible builds)",
+        "Dependabot alerts enabled"
+      ],
+      "residual_risk": "Low"
+    }
+  ]
+}

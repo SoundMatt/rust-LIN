@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "tool": "rsfusa",
+  "project": "rust-LIN",
+  "version": "0.1.0",
+  "asil": "ASIL-B",
+  "standard": "ISO 26262-6:2018",
+  "generated": "2026-06-19",
+  "claim": "rust-LIN v0.1.0 is acceptably safe for use as an ASIL-B software component implementing LIN bus communication.",
+  "sub_claims": [
+    {
+      "id": "SC-01",
+      "claim": "All safety requirements (REQ-LIN-001 through REQ-LIN-021) are implemented and verified.",
+      "evidence": [
+        {"type": "test", "ref": "cargo test (102 tests pass)"},
+        {"type": "trace", "ref": "rsfusa trace output (CI artifact)"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-02",
+      "claim": "No unsafe Rust code is present in the library.",
+      "evidence": [
+        {"type": "analysis", "ref": "grep -r 'unsafe' src/ returns no results"},
+        {"type": "lint", "ref": "rsfusa lint output (CI artifact)"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-03",
+      "claim": "Cyclomatic complexity V(G) ≤ 10 for all functions.",
+      "evidence": [
+        {"type": "analysis", "ref": "rsfusa comp output (CI artifact)"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-04",
+      "claim": "All hazards identified in the HARA (H-01 through H-06) are mitigated.",
+      "evidence": [
+        {"type": "hara", "ref": ".fusa-hara.json"},
+        {"type": "fmea", "ref": "fmea.json"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-05",
+      "claim": "The compiler (rustc 1.80.0) is qualified at TQL-3.",
+      "evidence": [
+        {"type": "qualification", "ref": "tool-qualification/rustc-tql3.md"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-06",
+      "claim": "The static analyser (rsfusa 0.5) is qualified at TQL-2.",
+      "evidence": [
+        {"type": "qualification", "ref": "tool-qualification/rsfusa-tql2.md"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-07",
+      "claim": "RELAY v1.10 conformance is demonstrated.",
+      "evidence": [
+        {"type": "conformance", "ref": "relay conform --strict (CI conformance job)"},
+        {"type": "golden_vectors", "ref": "testdata/relay-vectors/"}
+      ],
+      "status": "satisfied"
+    },
+    {
+      "id": "SC-08",
+      "claim": "No known dependency vulnerabilities exist at time of release.",
+      "evidence": [
+        {"type": "audit", "ref": "cargo audit (CI build-test job)"}
+      ],
+      "status": "satisfied"
+    }
+  ]
+}

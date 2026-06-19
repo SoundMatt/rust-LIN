@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  rust-lin:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: rust-lin:0.1.0
+    container_name: rust-lin
+    restart: "no"
+    # Default: print version and exit.
+    # Override command for other uses, e.g.:
+    #   command: ["subscribe", "--count", "10"]
+    command: ["version", "--format", "json"]
+    environment:
+      RUST_LOG: info
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

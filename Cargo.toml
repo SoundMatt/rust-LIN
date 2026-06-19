@@ -1,0 +1,33 @@
+[package]
+name = "rust-lin"
+version = "0.1.0"
+edition = "2021"
+description = "rust-LIN: Rust library for LIN bus (Local Interconnect Network) — LIN 2.x, virtual bus, LDF parser, master/slave nodes, safety E2E"
+license = "MPL-2.0"
+repository = "https://github.com/SoundMatt/rust-LIN"
+homepage = "https://github.com/SoundMatt/rust-LIN"
+keywords = ["lin", "linbus", "automotive", "embedded", "relay"]
+categories = ["embedded", "network-programming", "asynchronous"]
+rust-version = "1.75"
+
+[lib]
+name = "rust_lin"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rust-lin"
+path = "src/bin/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+base64 = "0.22"
+hex = "0.4"
+
+[dev-dependencies]
+tokio-test = "0.4"

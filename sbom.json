@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "tool": "rsfusa",
+  "project": "rust-LIN",
+  "version": "0.1.0",
+  "generated": "2026-06-19",
+  "format": "CycloneDX",
+  "note": "Placeholder SBOM. Populated by 'rsfusa release --dir .' in CI.",
+  "components": [
+    {"name": "tokio", "version": "1.x", "license": "MIT"},
+    {"name": "async-trait", "version": "0.1.x", "license": "MIT OR Apache-2.0"},
+    {"name": "serde", "version": "1.x", "license": "MIT OR Apache-2.0"},
+    {"name": "serde_json", "version": "1.x", "license": "MIT OR Apache-2.0"},
+    {"name": "thiserror", "version": "1.x", "license": "MIT OR Apache-2.0"},
+    {"name": "chrono", "version": "0.4.x", "license": "MIT OR Apache-2.0"},
+    {"name": "clap", "version": "4.x", "license": "MIT OR Apache-2.0"},
+    {"name": "base64", "version": "0.22.x", "license": "MIT OR Apache-2.0"},
+    {"name": "hex", "version": "0.4.x", "license": "MIT OR Apache-2.0"}
+  ]
+}

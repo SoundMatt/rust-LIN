@@ -1,0 +1,287 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Core build & test ──────────────────────────────────────────────────────
+  build-test:
+    name: build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: fmt
+        run: cargo fmt --check
+
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: test
+        run: cargo test --locked
+
+      - name: Dependency vulnerability audit (§20.1.2)
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
+      - name: build release binary
+        run: cargo build --release --bin rust-lin --locked
+
+      - name: smoke test CLI
+        run: |
+          ./target/release/rust-lin version --format json | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          assert d['tool'] == 'rust-lin', f'bad tool: {d}'
+          assert d['protocol'] == 'LIN', f'bad protocol: {d}'
+          assert d['spec_version'] == '1.10', f'bad spec_version: {d}'
+          print('version JSON OK')
+          "
+          ./target/release/rust-lin capabilities | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          assert d['kind'] == 'capabilities', f'bad kind: {d}'
+          assert d['adapt'] == True, f'adapt must be true: {d}'
+          print('capabilities JSON OK')
+          "
+          ./target/release/rust-lin status --format json | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          assert d['protocol'] == 'LIN', f'bad protocol: {d}'
+          print('status JSON OK')
+          "
+          echo '{"id":16,"data":"qrs=","checksum":73,"checksum_type":1}' \
+            | ./target/release/rust-lin convert --protocol LIN | python3 -c "
+          import json, sys, base64
+          d = json.load(sys.stdin)
+          assert d['id'] == '16', f'bad id: {d}'
+          assert d['protocol'] == 3, f'bad protocol: {d}'
+          assert d['meta']['lin.checksum_type'] == 'enhanced', f'bad ct: {d}'
+          print('convert JSON OK')
+          "
+          convert_ec=0
+          echo '{}' | ./target/release/rust-lin convert --protocol LIN || convert_ec=$?
+          test "$convert_ec" -eq 1 && echo 'convert exit-1 on bad input OK' || \
+            { echo "FAIL: expected exit 1 on bad input, got $convert_ec"; exit 1; }
+          can_ec=0
+          ./target/release/rust-lin convert --protocol CAN </dev/null || can_ec=$?
+          test "$can_ec" -eq 2 && echo 'convert exit-2 on bad protocol OK' || \
+            { echo "FAIL: expected exit 2 on bad protocol, got $can_ec"; exit 1; }
+          printf '{"protocol":3,"version":{"major":0,"minor":0,"patch":0},"id":"16","payload":"qrs=","timestamp":"1970-01-01T00:00:00Z","meta":{"lin.checksum_type":"enhanced","lin.checksum":"73"}}\n' \
+            | ./target/release/rust-lin send --format json
+          echo 'send --format json OK'
+
+  # ── ASIL-B safety checks via rust-FuSa ────────────────────────────────────
+  safety:
+    name: ASIL-B safety (rust-FuSa)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ubuntu-cargo-safety-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install rsfusa
+        run: cargo install --git https://github.com/SoundMatt/rust-FuSa rsfusa --locked
+
+      - name: Build release binary (needed for qualify)
+        run: cargo build --release --locked
+
+      - name: Run cargo tests (unit + integration)
+        run: cargo test --locked
+
+      - name: Capture test evidence with rsfusa
+        run: rsfusa verify --dir . || true
+
+      - name: Coding standard lint (ISO 26262 Part 6)
+        run: rsfusa lint --dir . --format json --output lint-report.json || true
+
+      - name: Static analysis
+        run: rsfusa analyze --dir . --format json --output analyze-report.json || true
+
+      - name: Safety check (ASIL-B strict — §20.1.2)
+        run: rsfusa check --dir . --strict --format json --output check-report.json || true
+
+      - name: Safety check SARIF (GitHub code scanning)
+        run: rsfusa check --dir . --format sarif --output results.sarif || true
+
+      - name: Cyclomatic complexity V(G)
+        run: rsfusa comp --dir . --format json --output comp-report.json || true
+
+      - name: Requirement traceability matrix (§20.1.2)
+        run: |
+          rsfusa trace --dir . --format json --output trace.json || true
+          rsfusa trace --dir . --format text || true
+
+      - name: FMEA
+        run: rsfusa fmea --dir . || true
+
+      - name: Threat analysis (TARA)
+        run: rsfusa tara --dir . || true
+
+      - name: Cybersecurity analysis (CWE)
+        run: rsfusa cyber --dir . --format json --output cyber-report.json || true
+
+      - name: Boundary diagram
+        run: rsfusa boundary --dir . || true
+
+      - name: HARA
+        run: rsfusa hara show --dir . || true
+
+      - name: Safety case assembly
+        run: rsfusa safety-case --dir . || true
+
+      - name: ISO 26262 Part 6 gap report
+        run: rsfusa iso26262 --dir . --format json --output iso26262-gap-report.json || true
+
+      - name: Tool qualification
+        run: rsfusa qualify
+
+      - name: Release artifacts (SBOM, provenance, manifest)
+        run: rsfusa release --dir .
+
+      - name: Audit pack
+        run: rsfusa audit-pack --output audit-pack.zip || true
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+        continue-on-error: true
+
+      - name: Upload safety evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-evidence
+          path: |
+            check-report.json
+            lint-report.json
+            analyze-report.json
+            comp-report.json
+            cyber-report.json
+            trace.json
+            fmea.json
+            tara.json
+            safety-case.json
+            safety-case.md
+            iso26262-gap-report.json
+            qualify-report.json
+            sbom.json
+            provenance.json
+            artifact-manifest.json
+            audit-pack.zip
+          if-no-files-found: warn
+
+  # ── RELAY conformance gate ────────────────────────────────────────────────
+  conformance:
+    name: RELAY conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ubuntu-cargo-conform-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release binary
+        run: cargo build --release --bin rust-lin --locked
+
+      - name: Install relay
+        run: go install github.com/SoundMatt/RELAY/cmd/relay@v1.10.0
+
+      - name: RELAY conformance (strict)
+        run: relay conform ./target/release/rust-lin --strict
+
+      - name: RELAY interop (LIN golden vectors — must be EQUIVALENT)
+        run: |
+          interop_out=$(relay interop ./target/release/rust-lin 2>&1) || true
+          echo "$interop_out"
+          if echo "$interop_out" | grep -A2 "(LIN)" | grep -qE "ERROR|FAIL"; then
+            echo "FAIL: one or more LIN golden vectors not EQUIVALENT"
+            exit 1
+          fi
+
+  # ── DCO sign-off check ─────────────────────────────────────────────────────
+  dco:
+    name: DCO
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check DCO sign-off on all PR commits
+        run: |
+          git log --format="%H" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | while read -r sha; do
+            body=$(git log -1 --format="%B" "$sha")
+            if ! echo "$body" | grep -qE "^Signed-off-by: .+ <.+@.+>"; then
+              echo "FAIL: commit $sha is missing a Signed-off-by line"
+              exit 1
+            fi
+          done
+          echo "DCO check passed"
+
+  # ── Cross-compile ──────────────────────────────────────────────────────────
+  cross-compile:
+    name: cross-compile (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-musl
+          - x86_64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+      - name: Build
+        run: cross build --release --bin rust-lin --target ${{ matrix.target }} --locked

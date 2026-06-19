@@ -1,0 +1,134 @@
+# Safety Plan — rust-LIN
+
+**ASIL-B — ISO 26262 Part 6 — Software Unit Design and Implementation**
+**Version:** 0.1.0  
+**Date:** 2026-06-19  
+**Author:** Matt Jones
+
+---
+
+## 1. Scope and objectives
+
+This safety plan covers the rust-LIN software library (`rust_lin` crate,
+version 0.1.0) and its CLI binary (`rust-lin`). The library implements:
+
+- LIN bus traits (`Bus`, `MasterBus`).
+- LIN 2.x frame encoding/decoding (PID, classic and enhanced checksum).
+- In-process virtual bus (`VirtualBus`).
+- Schedule table executor (`MasterNode`).
+- RELAY v1.10 protocol adapter.
+
+**Target ASIL:** ASIL-B (ISO 26262-1:2018 §3.6).
+
+---
+
+## 2. Referenced standards
+
+| Standard | Clause | Application |
+|---|---|---|
+| ISO 26262-1:2018 | §3 | Vocabulary |
+| ISO 26262-6:2018 | §8 | Software unit design and implementation |
+| ISO 26262-6:2018 | §9 | Software unit testing |
+| ISO 17987-3:2016 | §6 | LIN 2.x physical and data-link layer |
+| IEC 61508-3 | §7.4 | Compiler/tool qualification |
+| IEC 62443-4-1 | § | Cybersecurity process requirements |
+
+---
+
+## 3. Hazard analysis summary
+
+Full HARA is in `.fusa-hara.json`. Top hazards:
+
+| Hazard ID | Description | ASIL |
+|---|---|---|
+| H-01 | Wrong PID delivered to network (mismatch between ID and parity) | B |
+| H-02 | Corrupted checksum accepted as valid | B |
+| H-03 | Diagnostic frame (0x3C/0x3D) with enhanced checksum accepted | B |
+| H-04 | Frame data longer than 8 bytes sent | B |
+| H-05 | Frame ID > 0x3F delivered | B |
+| H-06 | NoResponse not propagated to caller | B |
+
+---
+
+## 4. Safety requirements
+
+Requirements are machine-readable in `requirements.json`. Key allocations:
+
+| Req ID | Description | Source |
+|---|---|---|
+| REQ-LIN-001 | `protect_id` must compute P0 = ID0^ID1^ID2^ID4 | ISO 17987-3 §6.3 |
+| REQ-LIN-002 | `protect_id` must compute P1 = NOT(ID1^ID3^ID4^ID5) | ISO 17987-3 §6.3 |
+| REQ-LIN-003 | `calc_checksum` classic: sum data bytes only | ISO 17987-3 §6.4 |
+| REQ-LIN-004 | `calc_checksum` enhanced: sum PID + data bytes | ISO 17987-3 §6.4 |
+| REQ-LIN-005 | Checksum uses carry-around (subtract 0xFF not 0x100) | ISO 17987-3 §6.4 |
+| REQ-LIN-006 | Checksum is inverted: 0xFF - sum | ISO 17987-3 §6.4 |
+| REQ-LIN-007 | Frame ID must be ≤ 0x3F | ISO 17987-3 §6.2 |
+| REQ-LIN-008 | Frame data length must be 1–8 bytes | ISO 17987-3 §6.2 |
+| REQ-LIN-009 | Diagnostic frames 0x3C / 0x3D must use ClassicChecksum | ISO 17987-3 §6.5 |
+| REQ-LIN-010 | `validate_frame` must enforce all frame validity rules | — |
+| REQ-LIN-011 | `Bus::publish` stores a slave response, does not broadcast | LIN arch |
+| REQ-LIN-012 | `MasterBus::send_header` computes PID, checksum, validates, broadcasts | LIN arch |
+| REQ-LIN-013 | `set_schedule` must validate all entry IDs ≤ 0x3F | — |
+| REQ-LIN-014 | Error::NoResponse must be returned when no slave response exists | RELAY §5.1 |
+| REQ-LIN-015 | `verify_pid` must reject PIDs with incorrect parity | ISO 17987-3 §6.3 |
+| REQ-LIN-016 | `FrameReceiver::recv` must return None after bus close | — |
+| REQ-LIN-017 | Back-pressure must not block the bus sender | — |
+| REQ-LIN-018 | Bus close must be idempotent | — |
+| REQ-LIN-019 | RELAY adapter `to_message` must set protocol = 3 (Lin) | RELAY §3.2 |
+| REQ-LIN-020 | RELAY adapter `from_message` must reject protocol ≠ 3 | RELAY §3.2 |
+| REQ-LIN-021 | Error::NoResponse::kind() must return relay::Error::Timeout | RELAY §5.1 |
+
+---
+
+## 5. Verification approach
+
+| Method | Tool | Coverage requirement |
+|---|---|---|
+| Code review | Manual + `rsfusa lint` | 100% of exported functions |
+| Unit testing | `cargo test` | All safety requirements |
+| Integration testing | `cargo test` (tests/) | Bus lifecycle, error paths |
+| Static analysis | `rsfusa analyze` | All modules |
+| Requirement trace | `rsfusa trace` | All REQ-LIN-NNN |
+| Complexity | `rsfusa comp --strict` | V(G) ≤ 10 per function |
+| Dependency audit | `cargo audit` | All dependencies |
+| RELAY conformance | `relay conform --strict` | All RELAY sub-tests |
+
+---
+
+## 6. Tool qualification
+
+| Tool | TQL | Justification |
+|---|---|---|
+| `rustc` (stable) | TQL-3 | Used for compilation; output is deterministic binary |
+| `rsfusa` | TQL-2 | Used for static analysis, trace, lint; not directly safety-critical |
+| `cargo audit` | TQL-1 | Used for informational vulnerability checking |
+
+Full qualification evidence is in `tool-qualification/`.
+
+---
+
+## 7. Residual risk
+
+No residual risks have been identified at ASIL-B level for the current
+software implementation given the verification activities above. Integrators
+operating at ASIL-C or ASIL-D must perform ASIL decomposition and apply
+additional measures appropriate to those levels.
+
+---
+
+## 8. Configuration management
+
+- All source code is version-controlled in git.
+- Releases are tagged `vMAJOR.MINOR.PATCH`.
+- `Cargo.lock` is committed to ensure reproducible builds.
+- SBOM is generated by `rsfusa release` on every CI run.
+
+---
+
+## 9. Review and approval
+
+This safety plan must be reviewed and approved before v0.1.0 release and
+re-reviewed for any subsequent minor or major release.
+
+**Author:** Matt Jones <matt@jellybaby.com>  
+**Date:** 2026-06-19

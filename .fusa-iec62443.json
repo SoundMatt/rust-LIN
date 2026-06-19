@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "tool": "rsfusa",
+  "project": "rust-LIN",
+  "standard": "IEC 62443-4-1:2018",
+  "generated": "2026-06-19",
+  "security_level_target": "SL-1",
+  "practices": [
+    {
+      "id": "SM-1",
+      "title": "Security management",
+      "status": "compliant",
+      "notes": "SECURITY.md, INCIDENT-RESPONSE.md, responsible disclosure policy"
+    },
+    {
+      "id": "SM-2",
+      "title": "Identification of responsibilities",
+      "status": "compliant",
+      "notes": "Single maintainer identified in SECURITY.md"
+    },
+    {
+      "id": "SR-1",
+      "title": "Security requirements",
+      "status": "compliant",
+      "notes": "REQ-SEC-001, REQ-SEC-007, REQ-SEC-008 in requirements.json"
+    },
+    {
+      "id": "SD-1",
+      "title": "Secure design",
+      "status": "compliant",
+      "notes": "No unsafe code; input validation on all bus entry points"
+    },
+    {
+      "id": "SI-1",
+      "title": "Secure implementation",
+      "status": "compliant",
+      "notes": "cargo clippy -D warnings; no unsafe blocks; no dynamic code execution"
+    },
+    {
+      "id": "SVV-1",
+      "title": "Security verification and validation",
+      "status": "compliant",
+      "notes": "cargo audit in CI; security unit tests in integration_test.rs"
+    },
+    {
+      "id": "DM-1",
+      "title": "Defect management",
+      "status": "compliant",
+      "notes": "GitHub Issues; INCIDENT-RESPONSE.md; cargo audit automated"
+    },
+    {
+      "id": "SUM-1",
+      "title": "Security update management",
+      "status": "compliant",
+      "notes": "Dependabot; cargo audit on every CI run; patch release process in INCIDENT-RESPONSE.md"
+    }
+  ],
+  "threats": [
+    {
+      "id": "T-01",
+      "description": "Malformed LIN frame injected via RELAY adapter",
+      "cwe": "CWE-20",
+      "mitigation": "from_message validates protocol, id range, and data via validate_frame",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-02",
+      "description": "Oversized payload causing buffer issues",
+      "cwe": "CWE-120",
+      "mitigation": "validate_frame rejects data.len() > 8; Rust Vec is bounds-safe",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-03",
+      "description": "Integer overflow in checksum calculation",
+      "cwe": "CWE-190",
+      "mitigation": "calc_checksum uses u16 accumulator with explicit carry-around; no overflow possible",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-04",
+      "description": "Race condition in concurrent bus access",
+      "cwe": "CWE-362",
+      "mitigation": "All shared state protected by tokio::sync::Mutex or atomic operations",
+      "status": "mitigated"
+    },
+    {
+      "id": "T-05",
+      "description": "Dependency vulnerability in third-party crates",
+      "cwe": "CWE-1395",
+      "mitigation": "cargo audit runs on every CI build; Cargo.lock committed",
+      "status": "mitigated"
+    }
+  ]
+}

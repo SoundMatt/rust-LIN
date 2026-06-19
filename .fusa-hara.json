@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "tool": "rsfusa",
+  "project": "rust-LIN",
+  "standard": "ISO 26262-3:2018",
+  "asil": "ASIL-B",
+  "generated": "2026-06-19",
+  "hazards": [
+    {
+      "id": "H-01",
+      "description": "Wrong PID delivered to LIN network due to parity bit computation error",
+      "consequence": "Slave nodes interpret wrong frame; incorrect actuator action",
+      "severity": "S2",
+      "exposure": "E3",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-LIN-001, REQ-LIN-002: protect_id verified by unit tests with golden vectors",
+      "status": "mitigated"
+    },
+    {
+      "id": "H-02",
+      "description": "Corrupted checksum accepted as valid frame",
+      "consequence": "Invalid data processed by safety function",
+      "severity": "S2",
+      "exposure": "E3",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-LIN-003 through REQ-LIN-006: checksum algorithm verified by unit tests",
+      "status": "mitigated"
+    },
+    {
+      "id": "H-03",
+      "description": "Diagnostic frame (0x3C/0x3D) with enhanced checksum accepted",
+      "consequence": "Incorrect diagnostic response; potential misconfiguration of slave node",
+      "severity": "S1",
+      "exposure": "E2",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-LIN-009: validate_frame enforces ClassicChecksum for diagnostic IDs",
+      "status": "mitigated"
+    },
+    {
+      "id": "H-04",
+      "description": "Frame data longer than 8 bytes sent on bus",
+      "consequence": "Bus protocol violation; undefined slave node behaviour",
+      "severity": "S1",
+      "exposure": "E3",
+      "controllability": "C3",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-LIN-008: validate_frame rejects len > 8",
+      "status": "mitigated"
+    },
+    {
+      "id": "H-05",
+      "description": "Frame ID > 0x3F sent on bus",
+      "consequence": "Undefined behaviour on LIN network; potential bus conflict",
+      "severity": "S1",
+      "exposure": "E3",
+      "controllability": "C3",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-LIN-007: validate_frame rejects id > 0x3F",
+      "status": "mitigated"
+    },
+    {
+      "id": "H-06",
+      "description": "NoResponse not propagated to application caller",
+      "consequence": "Application assumes successful communication; stale state used",
+      "severity": "S2",
+      "exposure": "E3",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-LIN-014, REQ-LIN-021: NoResponse returned and maps to relay::Error::Timeout",
+      "status": "mitigated"
+    }
+  ]
+}

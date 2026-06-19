@@ -1,0 +1,377 @@
+{
+  "schema_version": "1.0",
+  "project": "rust-LIN",
+  "asil": "ASIL-B",
+  "generated": "2026-06-19",
+  "requirements": [
+    {
+      "id": "REQ-LIN-001",
+      "title": "PID parity bit P0",
+      "description": "protect_id must compute P0 = ID0 XOR ID1 XOR ID2 XOR ID4",
+      "source": "ISO 17987-3:2016 §6.3",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-002",
+      "title": "PID parity bit P1",
+      "description": "protect_id must compute P1 = NOT(ID1 XOR ID3 XOR ID4 XOR ID5)",
+      "source": "ISO 17987-3:2016 §6.3",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-003",
+      "title": "Classic checksum covers data only",
+      "description": "calc_checksum in Classic mode sums data bytes only (no PID)",
+      "source": "ISO 17987-3:2016 §6.4",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-004",
+      "title": "Enhanced checksum covers PID plus data",
+      "description": "calc_checksum in Enhanced mode sums PID byte plus all data bytes",
+      "source": "ISO 17987-3:2016 §6.4",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-005",
+      "title": "Carry-around addition",
+      "description": "Checksum sum uses carry-around: when sum exceeds 0xFF subtract 0xFF (not 0x100)",
+      "source": "ISO 17987-3:2016 §6.4",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-006",
+      "title": "Checksum inversion",
+      "description": "Final checksum byte is bitwise inverted: result = 0xFF - sum",
+      "source": "ISO 17987-3:2016 §6.4",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-007",
+      "title": "Frame ID range",
+      "description": "Frame ID must be in range 0x00..=0x3F; validate_frame rejects id > 0x3F",
+      "source": "ISO 17987-3:2016 §6.2",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-008",
+      "title": "Frame data length",
+      "description": "Frame data length must be 1 to 8 bytes inclusive",
+      "source": "ISO 17987-3:2016 §6.2",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-009",
+      "title": "Diagnostic frames require ClassicChecksum",
+      "description": "Frames with ID 0x3C or 0x3D must use ClassicChecksum; enhanced is rejected",
+      "source": "ISO 17987-3:2016 §6.5",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-010",
+      "title": "validate_frame enforces all invariants",
+      "description": "validate_frame checks id range, data non-empty, data length ≤ 8, diagnostic checksum type",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-011",
+      "title": "publish stores slave response",
+      "description": "Bus::publish stores data keyed by id; does not broadcast to subscribers",
+      "source": "LIN architecture",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-012",
+      "title": "send_header drives frame exchange",
+      "description": "MasterBus::send_header computes PID, checksum, validates, and broadcasts to subscribers",
+      "source": "LIN architecture",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-013",
+      "title": "set_schedule validates entry IDs",
+      "description": "set_schedule rejects any entry with id > 0x3F",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-014",
+      "title": "NoResponse returned when no slave response registered",
+      "description": "send_header returns Error::NoResponse when no response is registered for the requested id",
+      "source": "RELAY spec v1.10 §5.1",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-015",
+      "title": "verify_pid rejects incorrect parity",
+      "description": "verify_pid returns Err(InvalidFrame) when parity bits in pid do not match computed values",
+      "source": "ISO 17987-3:2016 §6.3",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-016",
+      "title": "FrameReceiver returns None after close",
+      "description": "FrameReceiver::recv returns None once the bus or the receiver is closed",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-017",
+      "title": "Back-pressure must not block bus sender",
+      "description": "When subscriber queue is full, frames are dropped (DropNewest or DropOldest) rather than blocking send_header",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-018",
+      "title": "Bus close is idempotent",
+      "description": "Calling Bus::close more than once returns Ok without error",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-019",
+      "title": "to_message sets protocol = 3",
+      "description": "RELAY adapter to_message must set Message::protocol = Protocol::Lin (3)",
+      "source": "RELAY spec v1.10 §3.2",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-020",
+      "title": "from_message rejects wrong protocol",
+      "description": "RELAY adapter from_message returns Err(InvalidFrame) when Message::protocol != Lin",
+      "source": "RELAY spec v1.10 §3.2",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-LIN-021",
+      "title": "NoResponse kind maps to Timeout",
+      "description": "Error::NoResponse::kind() must return relay::Error::Timeout (ErrNoResponse IS Timeout)",
+      "source": "RELAY spec v1.10 §5.1",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-001",
+      "title": "VirtualBus publish stores SlaveResponse",
+      "description": "VirtualBus::publish stores data with Enhanced checksum type by default",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-002",
+      "title": "VirtualBus publish_classic stores SlaveResponse with Classic type",
+      "description": "VirtualBus::publish_classic stores data with Classic checksum type",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-003",
+      "title": "VirtualBus send_header broadcasts to matching subscribers",
+      "description": "send_header delivers frame to all active subscribers whose filters match",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-004",
+      "title": "VirtualBus metrics tracking",
+      "description": "VirtualBus tracks published, delivered, and dropped frame counts atomically",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-005",
+      "title": "VirtualBus health reporting",
+      "description": "VirtualBus::health returns HealthStatus::Healthy when open, HealthStatus::Unhealthy when closed",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-006",
+      "title": "VirtualBus subscribe returns FrameReceiver",
+      "description": "subscribe creates a SubInner and returns a FrameReceiver; the receiver receives frames broadcast by send_header",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-007",
+      "title": "VirtualBus filter semantics",
+      "description": "A subscriber with empty filters receives all frames; a subscriber with filters receives only matching frames",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-008",
+      "title": "VirtualBus publish None removes slave response",
+      "description": "Publishing None for an id removes any existing slave response for that id",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-009",
+      "title": "VirtualBus set_schedule validates IDs",
+      "description": "set_schedule on VirtualBus rejects any entry with id > 0x3F",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-010",
+      "title": "VirtualBus concurrent safety",
+      "description": "Multiple concurrent send_header calls must not race or corrupt state",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-011",
+      "title": "VirtualBus back-pressure DropOldest",
+      "description": "When a subscriber queue is full with DropOldest policy, the oldest frame is dropped and the new frame is enqueued",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-012",
+      "title": "VirtualBus back-pressure DropNewest",
+      "description": "When a subscriber queue is full with DropNewest policy, the new frame is dropped and the queue is unchanged",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-001",
+      "title": "MasterNode set_schedule validates non-empty",
+      "description": "MasterNode::set_schedule rejects an empty schedule with InvalidFrame error",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-002",
+      "title": "MasterNode set_schedule validates ID range",
+      "description": "MasterNode::set_schedule rejects any entry with id > 0x3F",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-003",
+      "title": "MasterNode run executes schedule loop",
+      "description": "MasterNode::run iterates schedule entries, calls send_header for each, invokes on_frame or on_error callbacks",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-004",
+      "title": "MasterNode run respects context cancellation",
+      "description": "MasterNode::run exits its loop when ctx.done() returns true",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-005",
+      "title": "MasterNode run invokes on_error for NoResponse",
+      "description": "When send_header returns NoResponse, run invokes on_error(id, Error::NoResponse)",
+      "source": "internal",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-001",
+      "title": "Oversized payload rejected",
+      "description": "Data longer than 8 bytes is rejected by validate_frame",
+      "source": "IEC 62443-4-1",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-007",
+      "title": "Invalid PID rejected",
+      "description": "verify_pid rejects PIDs with mismatched parity bits",
+      "source": "IEC 62443-4-1",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-SEC-008",
+      "title": "ID overflow rejected",
+      "description": "Frame IDs > 0x3F are rejected by validate_frame and send_header",
+      "source": "IEC 62443-4-1",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    }
+  ]
+}
