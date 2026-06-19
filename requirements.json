@@ -125,7 +125,7 @@
       "id": "REQ-LIN-014",
       "title": "NoResponse returned when no slave response registered",
       "description": "send_header returns Error::NoResponse when no response is registered for the requested id",
-      "source": "RELAY spec v1.10 §5.1",
+      "source": "RELAY spec v1.11 §5.1",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -170,7 +170,7 @@
       "id": "REQ-LIN-019",
       "title": "to_message sets protocol = 3",
       "description": "RELAY adapter to_message must set Message::protocol = Protocol::Lin (3)",
-      "source": "RELAY spec v1.10 §3.2",
+      "source": "RELAY spec v1.11 §3.2",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -179,7 +179,7 @@
       "id": "REQ-LIN-020",
       "title": "from_message rejects wrong protocol",
       "description": "RELAY adapter from_message returns Err(InvalidFrame) when Message::protocol != Lin",
-      "source": "RELAY spec v1.10 §3.2",
+      "source": "RELAY spec v1.11 §3.2",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -188,7 +188,7 @@
       "id": "REQ-LIN-021",
       "title": "NoResponse kind maps to Timeout",
       "description": "Error::NoResponse::kind() must return relay::Error::Timeout (ErrNoResponse IS Timeout)",
-      "source": "RELAY spec v1.10 §5.1",
+      "source": "RELAY spec v1.11 §5.1",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -845,7 +845,7 @@
       "id": "REQ-ADAPT-001",
       "title": "Adapt returns a LIN relay::Node",
       "description": "adapt() wraps a Bus and returns a Box<dyn relay::Node> with Protocol::Lin",
-      "source": "RELAY spec v1.10 §10.3",
+      "source": "RELAY spec v1.11 §10.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -854,7 +854,7 @@
       "id": "REQ-ADAPT-002",
       "title": "LinAdapter::send publishes payload for a valid frame ID",
       "description": "relay::Node::send calls Bus::publish with the parsed frame ID and payload",
-      "source": "RELAY spec v1.10 §10.3",
+      "source": "RELAY spec v1.11 §10.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -863,7 +863,7 @@
       "id": "REQ-ADAPT-003",
       "title": "LinAdapter::send rejects an out-of-range frame ID",
       "description": "relay::Node::send returns relay::Error on non-numeric or out-of-range Message::id",
-      "source": "RELAY spec v1.10 §10.3",
+      "source": "RELAY spec v1.11 §10.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -872,7 +872,7 @@
       "id": "REQ-ADAPT-004",
       "title": "LinAdapter::subscribe converts frames to relay::Message",
       "description": "relay::Node::subscribe returns a channel of relay::Message envelopes with Protocol::Lin and correct meta fields",
-      "source": "RELAY spec v1.10 §10.3",
+      "source": "RELAY spec v1.11 §10.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -881,7 +881,7 @@
       "id": "REQ-ADAPT-005",
       "title": "LinAdapter::close closes the underlying bus",
       "description": "relay::Node::close delegates to Bus::close",
-      "source": "RELAY spec v1.10 §10.3",
+      "source": "RELAY spec v1.11 §10.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"

@@ -61,7 +61,7 @@
     },
     {
       "id": "SC-07",
-      "claim": "RELAY v1.10 conformance is demonstrated.",
+      "claim": "RELAY v1.11 conformance is demonstrated.",
       "evidence": [
         {"type": "conformance", "ref": "relay conform --strict (CI conformance job)"},
         {"type": "golden_vectors", "ref": "testdata/relay-vectors/"}

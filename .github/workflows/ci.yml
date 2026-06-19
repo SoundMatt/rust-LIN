@@ -77,7 +77,7 @@ jobs:
           d = json.load(sys.stdin)
           assert d['tool'] == 'rust-lin', f'bad tool: {d}'
           assert d['protocol'] == 'LIN', f'bad protocol: {d}'
-          assert d['spec_version'] == '1.10', f'bad spec_version: {d}'
+          assert d['spec_version'] == '1.11', f'bad spec_version: {d}'
           print('version JSON OK')
           "
           ./target/release/rust-lin capabilities | python3 -c "
@@ -251,7 +251,7 @@ jobs:
         run: cargo build --release --bin rust-lin --locked
 
       - name: Install relay
-        run: go install github.com/SoundMatt/RELAY/cmd/relay@v1.10.0
+        run: go install github.com/SoundMatt/RELAY/cmd/relay@v1.11.0
 
       - name: RELAY conformance (strict)
         run: relay conform ./target/release/rust-lin --strict

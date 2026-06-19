@@ -136,7 +136,7 @@
       "title": "NoResponse returned when no slave response registered",
       "description": "send_header returns Error::NoResponse when no response is registered for the requested id",
       "asil": "ASIL-B",
-      "rationale": "RELAY spec v1.10 \u00a75.1: send_header returns Error::NoResponse when no response is re",
+      "rationale": "RELAY spec v1.11 \u00a75.1: send_header returns Error::NoResponse when no response is re",
       "tags": [
         "lin"
       ]
@@ -186,7 +186,7 @@
       "title": "to_message sets protocol = 3",
       "description": "RELAY adapter to_message must set Message::protocol = Protocol::Lin (3)",
       "asil": "ASIL-B",
-      "rationale": "RELAY spec v1.10 \u00a73.2: RELAY adapter to_message must set Message::protocol = Protoc",
+      "rationale": "RELAY spec v1.11 \u00a73.2: RELAY adapter to_message must set Message::protocol = Protoc",
       "tags": [
         "lin"
       ]
@@ -196,7 +196,7 @@
       "title": "from_message rejects wrong protocol",
       "description": "RELAY adapter from_message returns Err(InvalidFrame) when Message::protocol != Lin",
       "asil": "ASIL-B",
-      "rationale": "RELAY spec v1.10 \u00a73.2: RELAY adapter from_message returns Err(InvalidFrame) when Me",
+      "rationale": "RELAY spec v1.11 \u00a73.2: RELAY adapter from_message returns Err(InvalidFrame) when Me",
       "tags": [
         "lin"
       ]
@@ -206,7 +206,7 @@
       "title": "NoResponse kind maps to Timeout",
       "description": "Error::NoResponse::kind() must return relay::Error::Timeout (ErrNoResponse IS Timeout)",
       "asil": "ASIL-B",
-      "rationale": "RELAY spec v1.10 \u00a75.1: Error::NoResponse::kind() must return relay::Error::Timeout ",
+      "rationale": "RELAY spec v1.11 \u00a75.1: Error::NoResponse::kind() must return relay::Error::Timeout ",
       "tags": [
         "lin"
       ]
@@ -936,7 +936,7 @@
       "title": "Adapt returns a LIN relay::Node",
       "description": "adapt() wraps a Bus and returns a Box<dyn relay::Node> with Protocol::Lin",
       "asil": "QM",
-      "rationale": "RELAY spec v1.10 \u00a710.3: adapt() wraps a Bus and returns a Box<dyn relay::Node> with ",
+      "rationale": "RELAY spec v1.11 \u00a710.3: adapt() wraps a Bus and returns a Box<dyn relay::Node> with ",
       "tags": [
         "adapt"
       ]
@@ -946,7 +946,7 @@
       "title": "LinAdapter::send publishes payload for a valid frame ID",
       "description": "relay::Node::send calls Bus::publish with the parsed frame ID and payload",
       "asil": "QM",
-      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::send calls Bus::publish with the parsed frame I",
+      "rationale": "RELAY spec v1.11 \u00a710.3: relay::Node::send calls Bus::publish with the parsed frame I",
       "tags": [
         "adapt"
       ]
@@ -956,7 +956,7 @@
       "title": "LinAdapter::send rejects an out-of-range frame ID",
       "description": "relay::Node::send returns relay::Error on non-numeric or out-of-range Message::id",
       "asil": "QM",
-      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::send returns relay::Error on non-numeric or out",
+      "rationale": "RELAY spec v1.11 \u00a710.3: relay::Node::send returns relay::Error on non-numeric or out",
       "tags": [
         "adapt"
       ]
@@ -966,7 +966,7 @@
       "title": "LinAdapter::subscribe converts frames to relay::Message",
       "description": "relay::Node::subscribe returns a channel of relay::Message envelopes with Protocol::Lin and correct meta fields",
       "asil": "QM",
-      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::subscribe returns a channel of relay::Message e",
+      "rationale": "RELAY spec v1.11 \u00a710.3: relay::Node::subscribe returns a channel of relay::Message e",
       "tags": [
         "adapt"
       ]
@@ -976,7 +976,7 @@
       "title": "LinAdapter::close closes the underlying bus",
       "description": "relay::Node::close delegates to Bus::close",
       "asil": "QM",
-      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::close delegates to Bus::close",
+      "rationale": "RELAY spec v1.11 \u00a710.3: relay::Node::close delegates to Bus::close",
       "tags": [
         "adapt"
       ]

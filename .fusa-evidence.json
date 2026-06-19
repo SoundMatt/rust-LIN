@@ -99,9 +99,9 @@
     {
       "id": "EV-011",
       "type": "relay_conformance",
-      "description": "RELAY v1.10 conformance — all sub-tests PASS, LIN golden vectors EQUIVALENT",
+      "description": "RELAY v1.11 conformance — all sub-tests PASS, LIN golden vectors EQUIVALENT",
       "artefact": "CI console output, conformance job",
-      "standard_ref": "RELAY spec v1.10 §20.1",
+      "standard_ref": "RELAY spec v1.11 §20.1",
       "status": "current",
       "generated_by": "relay conform ./target/release/rust-lin --strict"
     },

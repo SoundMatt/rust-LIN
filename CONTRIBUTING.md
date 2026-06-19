@@ -84,7 +84,7 @@ Pull requests are reviewed against:
 
 - CODING_STANDARD.md
 - SAFETY_PLAN.md §4
-- RELAY spec v1.10 §5 (protocol adapter contract)
+- RELAY spec v1.11 §5 (protocol adapter contract)
 - ISO 26262 Part 6 §8 (coding guidelines)
 
 ---

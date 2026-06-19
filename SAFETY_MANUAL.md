@@ -43,7 +43,7 @@ rust-LIN makes the following ASIL-B claims:
 | SC-12 | LDF parse() does not panic on any input | Unit test with empty/malformed LDF |
 | SC-13 | No unsafe code in library or binary | rsfusa lint CI gate |
 | SC-14 | Cyclomatic complexity V(G) ≤ 10 for all functions | rsfusa comp CI gate |
-| SC-15 | RELAY v1.10 adapter contract is satisfied | relay conform --strict CI gate |
+| SC-15 | RELAY v1.11 adapter contract is satisfied | relay conform --strict CI gate |
 
 ---
 
