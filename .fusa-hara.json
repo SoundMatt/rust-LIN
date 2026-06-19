@@ -1,10 +1,11 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "tool": "rsfusa",
   "project": "rust-LIN",
   "standard": "ISO 26262-3:2018",
   "asil": "ASIL-B",
   "generated": "2026-06-19",
+  "method": "FMEA-informed hazard enumeration per ISO 26262-3 §6 / §7",
   "hazards": [
     {
       "id": "H-01",
@@ -15,6 +16,7 @@
       "controllability": "C2",
       "asil": "ASIL-B",
       "mitigation": "REQ-LIN-001, REQ-LIN-002: protect_id verified by unit tests with golden vectors",
+      "fmea_refs": ["FMEA-001", "FMEA-002"],
       "status": "mitigated"
     },
     {
@@ -26,6 +28,7 @@
       "controllability": "C2",
       "asil": "ASIL-B",
       "mitigation": "REQ-LIN-003 through REQ-LIN-006: checksum algorithm verified by unit tests",
+      "fmea_refs": ["FMEA-003", "FMEA-004"],
       "status": "mitigated"
     },
     {
@@ -37,6 +40,7 @@
       "controllability": "C2",
       "asil": "ASIL-B",
       "mitigation": "REQ-LIN-009: validate_frame enforces ClassicChecksum for diagnostic IDs",
+      "fmea_refs": ["FMEA-005"],
       "status": "mitigated"
     },
     {
@@ -48,6 +52,7 @@
       "controllability": "C3",
       "asil": "ASIL-B",
       "mitigation": "REQ-LIN-008: validate_frame rejects len > 8",
+      "fmea_refs": ["FMEA-007"],
       "status": "mitigated"
     },
     {
@@ -59,6 +64,7 @@
       "controllability": "C3",
       "asil": "ASIL-B",
       "mitigation": "REQ-LIN-007: validate_frame rejects id > 0x3F",
+      "fmea_refs": ["FMEA-006"],
       "status": "mitigated"
     },
     {
@@ -70,6 +76,79 @@
       "controllability": "C2",
       "asil": "ASIL-B",
       "mitigation": "REQ-LIN-014, REQ-LIN-021: NoResponse returned and maps to relay::Error::Timeout",
+      "fmea_refs": ["FMEA-008", "FMEA-009"],
+      "status": "mitigated"
+    },
+    {
+      "id": "H-07",
+      "description": "E2E CRC computed incorrectly — corrupted payload accepted as intact",
+      "consequence": "Safety function processes corrupted data; incorrect actuator command issued",
+      "severity": "S2",
+      "exposure": "E3",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-SAFETY-005, REQ-SAFETY-008: CRC-16/CCITT-FALSE verified by golden-vector unit test; CrcMismatch returned on detection",
+      "fmea_refs": ["FMEA-011", "FMEA-012"],
+      "status": "mitigated"
+    },
+    {
+      "id": "H-08",
+      "description": "E2E sequence counter replay — replayed old frame accepted by Receiver",
+      "consequence": "Stale data used by safety function; control output based on outdated sensor reading",
+      "severity": "S2",
+      "exposure": "E2",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-SAFETY-009: Receiver::unwrap returns SequenceGap when counter != last+1",
+      "fmea_refs": ["FMEA-013"],
+      "status": "mitigated"
+    },
+    {
+      "id": "H-09",
+      "description": "LDF parser produces invalid schedule entry with frame ID > 0x3F",
+      "consequence": "MasterNode sends header with illegal ID; bus protocol violation",
+      "severity": "S1",
+      "exposure": "E2",
+      "controllability": "C3",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-SEOOC-006: integrator must validate LDF-derived IDs before passing to MasterNode; MasterNode set_schedule enforces ID ≤ 0x3F (REQ-LIN-013)",
+      "fmea_refs": ["FMEA-020"],
+      "status": "mitigated"
+    },
+    {
+      "id": "H-10",
+      "description": "SlaveNode set_response overwrites concurrent frame exchange in progress",
+      "consequence": "Slave returns partially-updated data; corrupted frame broadcast to subscribers",
+      "severity": "S1",
+      "exposure": "E3",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-SLAVE-008: tokio::sync::Mutex serialises all publish/response operations; set_response atomically replaces entry",
+      "fmea_refs": ["FMEA-021", "FMEA-022"],
+      "status": "mitigated"
+    },
+    {
+      "id": "H-11",
+      "description": "MasterNode schedule loop continues after context cancellation",
+      "consequence": "Master sends unexpected frames; slave nodes in invalid state",
+      "severity": "S1",
+      "exposure": "E3",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-MASTER-004: MasterNode::run checks ctx.done() at top of each loop iteration",
+      "fmea_refs": ["FMEA-025"],
+      "status": "mitigated"
+    },
+    {
+      "id": "H-12",
+      "description": "RELAY adapter from_message accepts message with wrong protocol, causing ID mis-mapping",
+      "consequence": "Frame intended for different protocol interpreted as LIN frame; wrong actuator addressed",
+      "severity": "S2",
+      "exposure": "E2",
+      "controllability": "C2",
+      "asil": "ASIL-B",
+      "mitigation": "REQ-ADAPT-002, REQ-SEC-002: from_message validates protocol field == Protocol::Lin (3) before constructing Frame",
+      "fmea_refs": ["FMEA-028"],
       "status": "mitigated"
     }
   ]
