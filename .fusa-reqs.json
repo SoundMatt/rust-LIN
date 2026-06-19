@@ -1,50 +1,945 @@
 {
-  "schema_version": "1.0",
-  "tool": "rsfusa",
-  "project": "rust-LIN",
-  "asil": "ASIL-B",
-  "source": "requirements.json",
+  "version": "1",
   "requirements": [
-    {"id": "REQ-LIN-001", "annotation": "//fusa:req REQ-LIN-001"},
-    {"id": "REQ-LIN-002", "annotation": "//fusa:req REQ-LIN-002"},
-    {"id": "REQ-LIN-003", "annotation": "//fusa:req REQ-LIN-003"},
-    {"id": "REQ-LIN-004", "annotation": "//fusa:req REQ-LIN-004"},
-    {"id": "REQ-LIN-005", "annotation": "//fusa:req REQ-LIN-005"},
-    {"id": "REQ-LIN-006", "annotation": "//fusa:req REQ-LIN-006"},
-    {"id": "REQ-LIN-007", "annotation": "//fusa:req REQ-LIN-007"},
-    {"id": "REQ-LIN-008", "annotation": "//fusa:req REQ-LIN-008"},
-    {"id": "REQ-LIN-009", "annotation": "//fusa:req REQ-LIN-009"},
-    {"id": "REQ-LIN-010", "annotation": "//fusa:req REQ-LIN-010"},
-    {"id": "REQ-LIN-011", "annotation": "//fusa:req REQ-LIN-011"},
-    {"id": "REQ-LIN-012", "annotation": "//fusa:req REQ-LIN-012"},
-    {"id": "REQ-LIN-013", "annotation": "//fusa:req REQ-LIN-013"},
-    {"id": "REQ-LIN-014", "annotation": "//fusa:req REQ-LIN-014"},
-    {"id": "REQ-LIN-015", "annotation": "//fusa:req REQ-LIN-015"},
-    {"id": "REQ-LIN-016", "annotation": "//fusa:req REQ-LIN-016"},
-    {"id": "REQ-LIN-017", "annotation": "//fusa:req REQ-LIN-017"},
-    {"id": "REQ-LIN-018", "annotation": "//fusa:req REQ-LIN-018"},
-    {"id": "REQ-LIN-019", "annotation": "//fusa:req REQ-LIN-019"},
-    {"id": "REQ-LIN-020", "annotation": "//fusa:req REQ-LIN-020"},
-    {"id": "REQ-LIN-021", "annotation": "//fusa:req REQ-LIN-021"},
-    {"id": "REQ-VIRT-001", "annotation": "//fusa:req REQ-VIRT-001"},
-    {"id": "REQ-VIRT-002", "annotation": "//fusa:req REQ-VIRT-002"},
-    {"id": "REQ-VIRT-003", "annotation": "//fusa:req REQ-VIRT-003"},
-    {"id": "REQ-VIRT-004", "annotation": "//fusa:req REQ-VIRT-004"},
-    {"id": "REQ-VIRT-005", "annotation": "//fusa:req REQ-VIRT-005"},
-    {"id": "REQ-VIRT-006", "annotation": "//fusa:req REQ-VIRT-006"},
-    {"id": "REQ-VIRT-007", "annotation": "//fusa:req REQ-VIRT-007"},
-    {"id": "REQ-VIRT-008", "annotation": "//fusa:req REQ-VIRT-008"},
-    {"id": "REQ-VIRT-009", "annotation": "//fusa:req REQ-VIRT-009"},
-    {"id": "REQ-VIRT-010", "annotation": "//fusa:req REQ-VIRT-010"},
-    {"id": "REQ-VIRT-011", "annotation": "//fusa:req REQ-VIRT-011"},
-    {"id": "REQ-VIRT-012", "annotation": "//fusa:req REQ-VIRT-012"},
-    {"id": "REQ-MASTER-001", "annotation": "//fusa:req REQ-MASTER-001"},
-    {"id": "REQ-MASTER-002", "annotation": "//fusa:req REQ-MASTER-002"},
-    {"id": "REQ-MASTER-003", "annotation": "//fusa:req REQ-MASTER-003"},
-    {"id": "REQ-MASTER-004", "annotation": "//fusa:req REQ-MASTER-004"},
-    {"id": "REQ-MASTER-005", "annotation": "//fusa:req REQ-MASTER-005"},
-    {"id": "REQ-SEC-001", "annotation": "//fusa:req REQ-SEC-001"},
-    {"id": "REQ-SEC-007", "annotation": "//fusa:req REQ-SEC-007"},
-    {"id": "REQ-SEC-008", "annotation": "//fusa:req REQ-SEC-008"}
+    {
+      "id": "REQ-LIN-001",
+      "title": "PID parity bit P0",
+      "description": "protect_id must compute P0 = ID0 XOR ID1 XOR ID2 XOR ID4",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.3: protect_id must compute P0 = ID0 XOR ID1 XOR ID2 XOR ID4",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-002",
+      "title": "PID parity bit P1",
+      "description": "protect_id must compute P1 = NOT(ID1 XOR ID3 XOR ID4 XOR ID5)",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.3: protect_id must compute P1 = NOT(ID1 XOR ID3 XOR ID4 XOR ID5",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-003",
+      "title": "Classic checksum covers data only",
+      "description": "calc_checksum in Classic mode sums data bytes only (no PID)",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.4: calc_checksum in Classic mode sums data bytes only (no PID)",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-004",
+      "title": "Enhanced checksum covers PID plus data",
+      "description": "calc_checksum in Enhanced mode sums PID byte plus all data bytes",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.4: calc_checksum in Enhanced mode sums PID byte plus all data b",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-005",
+      "title": "Carry-around addition",
+      "description": "Checksum sum uses carry-around: when sum exceeds 0xFF subtract 0xFF (not 0x100)",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.4: Checksum sum uses carry-around: when sum exceeds 0xFF subtra",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-006",
+      "title": "Checksum inversion",
+      "description": "Final checksum byte is bitwise inverted: result = 0xFF - sum",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.4: Final checksum byte is bitwise inverted: result = 0xFF - sum",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-007",
+      "title": "Frame ID range",
+      "description": "Frame ID must be in range 0x00..=0x3F; validate_frame rejects id > 0x3F",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.2: Frame ID must be in range 0x00..=0x3F; validate_frame reject",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-008",
+      "title": "Frame data length",
+      "description": "Frame data length must be 1 to 8 bytes inclusive",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.2: Frame data length must be 1 to 8 bytes inclusive",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-009",
+      "title": "Diagnostic frames require ClassicChecksum",
+      "description": "Frames with ID 0x3C or 0x3D must use ClassicChecksum; enhanced is rejected",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.5: Frames with ID 0x3C or 0x3D must use ClassicChecksum; enhanc",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-010",
+      "title": "validate_frame enforces all invariants",
+      "description": "validate_frame checks id range, data non-empty, data length \u2264 8, diagnostic checksum type",
+      "asil": "ASIL-B",
+      "rationale": "internal: validate_frame checks id range, data non-empty, data length ",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-011",
+      "title": "publish stores slave response",
+      "description": "Bus::publish stores data keyed by id; does not broadcast to subscribers",
+      "asil": "ASIL-B",
+      "rationale": "LIN architecture: Bus::publish stores data keyed by id; does not broadcast to ",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-012",
+      "title": "send_header drives frame exchange",
+      "description": "MasterBus::send_header computes PID, checksum, validates, and broadcasts to subscribers",
+      "asil": "ASIL-B",
+      "rationale": "LIN architecture: MasterBus::send_header computes PID, checksum, validates, an",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-013",
+      "title": "set_schedule validates entry IDs",
+      "description": "set_schedule rejects any entry with id > 0x3F",
+      "asil": "ASIL-B",
+      "rationale": "internal: set_schedule rejects any entry with id > 0x3F",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-014",
+      "title": "NoResponse returned when no slave response registered",
+      "description": "send_header returns Error::NoResponse when no response is registered for the requested id",
+      "asil": "ASIL-B",
+      "rationale": "RELAY spec v1.10 \u00a75.1: send_header returns Error::NoResponse when no response is re",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-015",
+      "title": "verify_pid rejects incorrect parity",
+      "description": "verify_pid returns Err(InvalidFrame) when parity bits in pid do not match computed values",
+      "asil": "ASIL-B",
+      "rationale": "ISO 17987-3:2016 \u00a76.3: verify_pid returns Err(InvalidFrame) when parity bits in pid",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-016",
+      "title": "FrameReceiver returns None after close",
+      "description": "FrameReceiver::recv returns None once the bus or the receiver is closed",
+      "asil": "ASIL-B",
+      "rationale": "internal: FrameReceiver::recv returns None once the bus or the receive",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-017",
+      "title": "Back-pressure must not block bus sender",
+      "description": "When subscriber queue is full, frames are dropped (DropNewest or DropOldest) rather than blocking send_header",
+      "asil": "ASIL-B",
+      "rationale": "internal: When subscriber queue is full, frames are dropped (DropNewes",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-018",
+      "title": "Bus close is idempotent",
+      "description": "Calling Bus::close more than once returns Ok without error",
+      "asil": "ASIL-B",
+      "rationale": "internal: Calling Bus::close more than once returns Ok without error",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-019",
+      "title": "to_message sets protocol = 3",
+      "description": "RELAY adapter to_message must set Message::protocol = Protocol::Lin (3)",
+      "asil": "ASIL-B",
+      "rationale": "RELAY spec v1.10 \u00a73.2: RELAY adapter to_message must set Message::protocol = Protoc",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-020",
+      "title": "from_message rejects wrong protocol",
+      "description": "RELAY adapter from_message returns Err(InvalidFrame) when Message::protocol != Lin",
+      "asil": "ASIL-B",
+      "rationale": "RELAY spec v1.10 \u00a73.2: RELAY adapter from_message returns Err(InvalidFrame) when Me",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-LIN-021",
+      "title": "NoResponse kind maps to Timeout",
+      "description": "Error::NoResponse::kind() must return relay::Error::Timeout (ErrNoResponse IS Timeout)",
+      "asil": "ASIL-B",
+      "rationale": "RELAY spec v1.10 \u00a75.1: Error::NoResponse::kind() must return relay::Error::Timeout ",
+      "tags": [
+        "lin"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-001",
+      "title": "VirtualBus publish stores SlaveResponse",
+      "description": "VirtualBus::publish stores data with Enhanced checksum type by default",
+      "asil": "ASIL-B",
+      "rationale": "internal: VirtualBus::publish stores data with Enhanced checksum type ",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-002",
+      "title": "VirtualBus publish_classic stores SlaveResponse with Classic type",
+      "description": "VirtualBus::publish_classic stores data with Classic checksum type",
+      "asil": "ASIL-B",
+      "rationale": "internal: VirtualBus::publish_classic stores data with Classic checksu",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-003",
+      "title": "VirtualBus send_header broadcasts to matching subscribers",
+      "description": "send_header delivers frame to all active subscribers whose filters match",
+      "asil": "ASIL-B",
+      "rationale": "internal: send_header delivers frame to all active subscribers whose f",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-004",
+      "title": "VirtualBus metrics tracking",
+      "description": "VirtualBus tracks published, delivered, and dropped frame counts atomically",
+      "asil": "ASIL-B",
+      "rationale": "internal: VirtualBus tracks published, delivered, and dropped frame co",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-005",
+      "title": "VirtualBus health reporting",
+      "description": "VirtualBus::health returns HealthStatus::Healthy when open, HealthStatus::Unhealthy when closed",
+      "asil": "ASIL-B",
+      "rationale": "internal: VirtualBus::health returns HealthStatus::Healthy when open, ",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-006",
+      "title": "VirtualBus subscribe returns FrameReceiver",
+      "description": "subscribe creates a SubInner and returns a FrameReceiver; the receiver receives frames broadcast by send_header",
+      "asil": "ASIL-B",
+      "rationale": "internal: subscribe creates a SubInner and returns a FrameReceiver; th",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-007",
+      "title": "VirtualBus filter semantics",
+      "description": "A subscriber with empty filters receives all frames; a subscriber with filters receives only matching frames",
+      "asil": "ASIL-B",
+      "rationale": "internal: A subscriber with empty filters receives all frames; a subsc",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-008",
+      "title": "VirtualBus publish None removes slave response",
+      "description": "Publishing None for an id removes any existing slave response for that id",
+      "asil": "ASIL-B",
+      "rationale": "internal: Publishing None for an id removes any existing slave respons",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-009",
+      "title": "VirtualBus set_schedule validates IDs",
+      "description": "set_schedule on VirtualBus rejects any entry with id > 0x3F",
+      "asil": "ASIL-B",
+      "rationale": "internal: set_schedule on VirtualBus rejects any entry with id > 0x3F",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-010",
+      "title": "VirtualBus concurrent safety",
+      "description": "Multiple concurrent send_header calls must not race or corrupt state",
+      "asil": "ASIL-B",
+      "rationale": "internal: Multiple concurrent send_header calls must not race or corru",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-011",
+      "title": "VirtualBus back-pressure DropOldest",
+      "description": "When a subscriber queue is full with DropOldest policy, the oldest frame is dropped and the new frame is enqueued",
+      "asil": "ASIL-B",
+      "rationale": "internal: When a subscriber queue is full with DropOldest policy, the ",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-012",
+      "title": "VirtualBus back-pressure DropNewest",
+      "description": "When a subscriber queue is full with DropNewest policy, the new frame is dropped and the queue is unchanged",
+      "asil": "ASIL-B",
+      "rationale": "internal: When a subscriber queue is full with DropNewest policy, the ",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-001",
+      "title": "MasterNode set_schedule validates non-empty",
+      "description": "MasterNode::set_schedule rejects an empty schedule with InvalidFrame error",
+      "asil": "ASIL-B",
+      "rationale": "internal: MasterNode::set_schedule rejects an empty schedule with Inva",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-002",
+      "title": "MasterNode set_schedule validates ID range",
+      "description": "MasterNode::set_schedule rejects any entry with id > 0x3F",
+      "asil": "ASIL-B",
+      "rationale": "internal: MasterNode::set_schedule rejects any entry with id > 0x3F",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-003",
+      "title": "MasterNode run executes schedule loop",
+      "description": "MasterNode::run iterates schedule entries, calls send_header for each, invokes on_frame or on_error callbacks",
+      "asil": "ASIL-B",
+      "rationale": "internal: MasterNode::run iterates schedule entries, calls send_header",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-004",
+      "title": "MasterNode run respects context cancellation",
+      "description": "MasterNode::run exits its loop when ctx.done() returns true",
+      "asil": "ASIL-B",
+      "rationale": "internal: MasterNode::run exits its loop when ctx.done() returns true",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-005",
+      "title": "MasterNode run invokes on_error for NoResponse",
+      "description": "When send_header returns NoResponse, run invokes on_error(id, Error::NoResponse)",
+      "asil": "ASIL-B",
+      "rationale": "internal: When send_header returns NoResponse, run invokes on_error(id",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-SEC-001",
+      "title": "Oversized payload rejected",
+      "description": "Data longer than 8 bytes is rejected by validate_frame",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1: Data longer than 8 bytes is rejected by validate_frame",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-007",
+      "title": "Invalid PID rejected",
+      "description": "verify_pid rejects PIDs with mismatched parity bits",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1: verify_pid rejects PIDs with mismatched parity bits",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-SEC-008",
+      "title": "ID overflow rejected",
+      "description": "Frame IDs > 0x3F are rejected by validate_frame and send_header",
+      "asil": "ASIL-B",
+      "rationale": "IEC 62443-4-1: Frame IDs > 0x3F are rejected by validate_frame and send_hea",
+      "tags": [
+        "sec"
+      ]
+    },
+    {
+      "id": "REQ-LDF-001",
+      "title": "Parse extracts protocol version",
+      "description": "ldf::parse shall populate Db::protocol_version from LIN_protocol_version field",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.1: ldf::parse shall populate Db::protocol_version from LIN_prot",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-002",
+      "title": "Parse extracts baud rate",
+      "description": "ldf::parse shall populate Db::speed_kbps from LIN_speed field",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.1: ldf::parse shall populate Db::speed_kbps from LIN_speed fiel",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-003",
+      "title": "Parse extracts master node name",
+      "description": "ldf::parse shall populate Db::master_node from Nodes::Master declaration",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.2: ldf::parse shall populate Db::master_node from Nodes::Master",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-004",
+      "title": "Parse extracts slave node list",
+      "description": "ldf::parse shall populate Db::slave_nodes from Nodes::Slaves declaration",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.2: ldf::parse shall populate Db::slave_nodes from Nodes::Slaves",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-005",
+      "title": "Parse populates frame descriptors",
+      "description": "ldf::parse shall populate frame id, name, publisher, and length from Frames section",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.3: ldf::parse shall populate frame id, name, publisher, and len",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-006",
+      "title": "Parse populates signal-to-bit-offset mappings",
+      "description": "ldf::parse shall populate SignalRef entries in each frame from Frames section",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.3: ldf::parse shall populate SignalRef entries in each frame fr",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-007",
+      "title": "Parse populates signal bit width",
+      "description": "ldf::parse shall populate Signal::bit_width from Signals section",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.4: ldf::parse shall populate Signal::bit_width from Signals sec",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-008",
+      "title": "Parse populates signal publisher",
+      "description": "ldf::parse shall populate Signal::publisher from Signals section",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.4: ldf::parse shall populate Signal::publisher from Signals sec",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-009",
+      "title": "Decode uses LSB-first Intel byte order",
+      "description": "Db::decode shall extract signal bits using LSB-first (Intel) byte ordering",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.5: Db::decode shall extract signal bits using LSB-first (Intel)",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-010",
+      "title": "Decode returns None for unknown frame ID",
+      "description": "Db::decode shall return None when the frame ID is not in the LDF",
+      "asil": "QM",
+      "rationale": "internal: Db::decode shall return None when the frame ID is not in the",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-011",
+      "title": "Parse populates schedule table entries",
+      "description": "ldf::parse shall populate schedule table name-to-entries mappings from Schedule_tables section",
+      "asil": "QM",
+      "rationale": "LIN 2.x spec \u00a77.6: ldf::parse shall populate schedule table name-to-entries map",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-012",
+      "title": "frame() returns None for unknown ID",
+      "description": "Db::frame(id) shall return None when the frame ID is not present",
+      "asil": "QM",
+      "rationale": "internal: Db::frame(id) shall return None when the frame ID is not pre",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-013",
+      "title": "signal() returns None for unknown name",
+      "description": "Db::signal(name) shall return None when the signal name is not present",
+      "asil": "QM",
+      "rationale": "internal: Db::signal(name) shall return None when the signal name is n",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-014",
+      "title": "Parse does not panic on arbitrary input",
+      "description": "ldf::parse shall not panic on malformed or empty input; it returns Ok(Db) with partial data",
+      "asil": "ASIL-B",
+      "rationale": "internal: ldf::parse shall not panic on malformed or empty input; it r",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-LDF-015",
+      "title": "frames() returns a defensive copy",
+      "description": "Db::frames() returns a HashMap clone; mutations do not affect the internal Db state",
+      "asil": "QM",
+      "rationale": "internal: Db::frames() returns a HashMap clone; mutations do not affec",
+      "tags": [
+        "ldf"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-001",
+      "title": "DataID embedded in header bytes 0-1",
+      "description": "Protector::protect shall write DataID as little-endian u16 at header bytes 0\u20131",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Protector::protect shall write DataID as little-endian u16 a",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-002",
+      "title": "SourceID embedded in header bytes 2-3",
+      "description": "Protector::protect shall write SourceID as little-endian u16 at header bytes 2\u20133",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Protector::protect shall write SourceID as little-endian u16",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-003",
+      "title": "SequenceCounter starts at 0 and increments",
+      "description": "Protector SequenceCounter starts at 0 and atomically increments by 1 per protect() call",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Protector SequenceCounter starts at 0 and atomically increme",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-004",
+      "title": "SequenceCounter embedded in header bytes 4-7",
+      "description": "Protector::protect shall write SequenceCounter as little-endian u32 at header bytes 4\u20137",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Protector::protect shall write SequenceCounter as little-end",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-005",
+      "title": "CRC computed over header and payload",
+      "description": "CRC-16/CCITT-FALSE (poly=0x1021, init=0xFFFF) computed over header (CRC slot zeroed) + payload",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: CRC-16/CCITT-FALSE (poly=0x1021, init=0xFFFF) computed over ",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-006",
+      "title": "CRC embedded in header bytes 8-9",
+      "description": "Protector::protect shall write CRC as little-endian u16 at header bytes 8\u20139",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Protector::protect shall write CRC as little-endian u16 at h",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-007",
+      "title": "Unwrap returns E2eError::HeaderTooShort for payload < 10 bytes",
+      "description": "Receiver::unwrap returns E2eError{kind:HeaderTooShort} when data.len() < 10",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Receiver::unwrap returns E2eError{kind:HeaderTooShort} when ",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-008",
+      "title": "Unwrap detects byte corruption via CRC",
+      "description": "Receiver::unwrap returns E2eError{kind:CrcMismatch} when CRC check fails",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Receiver::unwrap returns E2eError{kind:CrcMismatch} when CRC",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-009",
+      "title": "Unwrap detects sequence gap",
+      "description": "Receiver::unwrap returns E2eError{kind:SequenceGap} when received counter != last+1",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Receiver::unwrap returns E2eError{kind:SequenceGap} when rec",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-010",
+      "title": "Unwrap returns original payload on success",
+      "description": "Receiver::unwrap returns the original payload bytes on successful validation",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Receiver::unwrap returns the original payload bytes on succe",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-011",
+      "title": "Protect/Unwrap round-trip preserves payload",
+      "description": "protect(payload) followed by unwrap(protected) shall return the original payload unchanged",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: protect(payload) followed by unwrap(protected) shall return ",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-012",
+      "title": "Protect output length equals 10 + len(payload)",
+      "description": "Protector::protect shall return exactly 10 + len(payload) bytes",
+      "asil": "ASIL-B",
+      "rationale": "internal: Protector::protect shall return exactly 10 + len(payload) by",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-013",
+      "title": "Unwrap accepts first message with any counter value",
+      "description": "Receiver::unwrap shall accept any counter value on the first call to seed the sequence",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Receiver::unwrap shall accept any counter value on the first",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-014",
+      "title": "Protect is safe for concurrent calls",
+      "description": "Protector::protect may be called from multiple threads concurrently without data races",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-6:2018 \u00a77.4.11: Protector::protect may be called from multiple threads concu",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SAFETY-015",
+      "title": "Unwrap returns an independent payload copy",
+      "description": "Receiver::unwrap returns an owned Vec<u8>; mutations to the returned buffer do not affect internal state",
+      "asil": "ASIL-B",
+      "rationale": "internal: Receiver::unwrap returns an owned Vec<u8>; mutations to the ",
+      "tags": [
+        "safety"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-001",
+      "title": "New returns ready slave node",
+      "description": "SlaveNode::new wraps a Bus and returns a node with no registered responses",
+      "asil": "ASIL-B",
+      "rationale": "LIN architecture: SlaveNode::new wraps a Bus and returns a node with no regist",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-002",
+      "title": "SetResponse registers response via Publish",
+      "description": "SlaveNode::set_response calls Bus::publish to register the response payload",
+      "asil": "ASIL-B",
+      "rationale": "LIN architecture: SlaveNode::set_response calls Bus::publish to register the r",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-003",
+      "title": "SetResponse(None) removes registration",
+      "description": "SlaveNode::set_response with None calls Bus::publish(id, None) and removes the ID from registered_ids",
+      "asil": "ASIL-B",
+      "rationale": "LIN architecture: SlaveNode::set_response with None calls Bus::publish(id, Non",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-004",
+      "title": "SetResponse rejects ID > MaxID",
+      "description": "SlaveNode::set_response returns Error::InvalidFrame when id > 0x3F",
+      "asil": "ASIL-B",
+      "rationale": "LIN architecture: SlaveNode::set_response returns Error::InvalidFrame when id ",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-005",
+      "title": "RegisteredIDs reflects current state",
+      "description": "SlaveNode::registered_ids returns a sorted list of all currently registered frame IDs",
+      "asil": "QM",
+      "rationale": "internal: SlaveNode::registered_ids returns a sorted list of all curre",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-006",
+      "title": "Subscribe delegates to bus",
+      "description": "SlaveNode::subscribe delegates to the underlying Bus::subscribe",
+      "asil": "QM",
+      "rationale": "internal: SlaveNode::subscribe delegates to the underlying Bus::subscr",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-007",
+      "title": "RegisteredIDs returns empty slice when none registered",
+      "description": "SlaveNode::registered_ids returns an empty Vec when no responses are registered",
+      "asil": "QM",
+      "rationale": "internal: SlaveNode::registered_ids returns an empty Vec when no respo",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SLAVE-008",
+      "title": "SetResponse overwrites previous registration for same ID",
+      "description": "A second set_response call for the same ID overwrites the previous registration; registered_ids still shows the ID once",
+      "asil": "ASIL-B",
+      "rationale": "internal: A second set_response call for the same ID overwrites the pr",
+      "tags": [
+        "slave"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-001",
+      "title": "Integrating system provides physical LIN layer",
+      "description": "Assumption: the integrating system provides an ISO 17987-compliant physical LIN layer",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: Assumption: the integrating system provides an ISO 17987-com",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-002",
+      "title": "Integrating system calls validate_frame on external data",
+      "description": "Assumption: the integrating system calls validate_frame on any frame received from an external LIN interface",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: Assumption: the integrating system calls validate_frame on a",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-003",
+      "title": "Integrating system validates frame ID semantics",
+      "description": "Assumption: the integrating system enforces application-level frame ID semantics beyond the 6-bit range",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: Assumption: the integrating system enforces application-leve",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-004",
+      "title": "Integration: virtual bus delivers E2E payload intact",
+      "description": "A protect/unwrap round-trip over the virtual bus preserves the original payload",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: A protect/unwrap round-trip over the virtual bus preserves t",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-005",
+      "title": "Integration: master-slave round-trip via virtual bus",
+      "description": "A full master-slave publish/send_header/subscribe cycle delivers the registered payload to the subscriber",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: A full master-slave publish/send_header/subscribe cycle deli",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-006",
+      "title": "Integration: LDF schedule IDs are valid",
+      "description": "All frame IDs derived from an LDF-parsed schedule must be valid LIN IDs (\u2264 0x3F)",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: All frame IDs derived from an LDF-parsed schedule must be va",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-007",
+      "title": "Integrating system handles ErrNoResponse safely",
+      "description": "Assumption: the integrating system treats Error::NoResponse as a recoverable condition and does not propagate it as a fault",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: Assumption: the integrating system treats Error::NoResponse ",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-008",
+      "title": "Integrating system routes safety-critical frames through safety package",
+      "description": "Assumption: the integrating system applies safety::Protector/Receiver to payloads requiring E2E protection",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: Assumption: the integrating system applies safety::Protector",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-SEOOC-009",
+      "title": "Integrating system provides monotonic clock for timing",
+      "description": "Assumption: the integrating system provides a monotonic clock when timing LIN schedule slot delays",
+      "asil": "ASIL-B",
+      "rationale": "ISO 26262-10:2018 \u00a79.7: Assumption: the integrating system provides a monotonic cloc",
+      "tags": [
+        "seooc"
+      ]
+    },
+    {
+      "id": "REQ-ADAPT-001",
+      "title": "Adapt returns a LIN relay::Node",
+      "description": "adapt() wraps a Bus and returns a Box<dyn relay::Node> with Protocol::Lin",
+      "asil": "QM",
+      "rationale": "RELAY spec v1.10 \u00a710.3: adapt() wraps a Bus and returns a Box<dyn relay::Node> with ",
+      "tags": [
+        "adapt"
+      ]
+    },
+    {
+      "id": "REQ-ADAPT-002",
+      "title": "LinAdapter::send publishes payload for a valid frame ID",
+      "description": "relay::Node::send calls Bus::publish with the parsed frame ID and payload",
+      "asil": "QM",
+      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::send calls Bus::publish with the parsed frame I",
+      "tags": [
+        "adapt"
+      ]
+    },
+    {
+      "id": "REQ-ADAPT-003",
+      "title": "LinAdapter::send rejects an out-of-range frame ID",
+      "description": "relay::Node::send returns relay::Error on non-numeric or out-of-range Message::id",
+      "asil": "QM",
+      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::send returns relay::Error on non-numeric or out",
+      "tags": [
+        "adapt"
+      ]
+    },
+    {
+      "id": "REQ-ADAPT-004",
+      "title": "LinAdapter::subscribe converts frames to relay::Message",
+      "description": "relay::Node::subscribe returns a channel of relay::Message envelopes with Protocol::Lin and correct meta fields",
+      "asil": "QM",
+      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::subscribe returns a channel of relay::Message e",
+      "tags": [
+        "adapt"
+      ]
+    },
+    {
+      "id": "REQ-ADAPT-005",
+      "title": "LinAdapter::close closes the underlying bus",
+      "description": "relay::Node::close delegates to Bus::close",
+      "asil": "QM",
+      "rationale": "RELAY spec v1.10 \u00a710.3: relay::Node::close delegates to Bus::close",
+      "tags": [
+        "adapt"
+      ]
+    },
+    {
+      "id": "REQ-MOCK-001",
+      "title": "mock::MockBus satisfies Bus and MasterBus",
+      "description": "MockBus implements Bus and MasterBus; it records published responses and returns them from send_header",
+      "asil": "QM",
+      "rationale": "internal: MockBus implements Bus and MasterBus; it records published r",
+      "tags": [
+        "mock"
+      ]
+    }
   ]
 }

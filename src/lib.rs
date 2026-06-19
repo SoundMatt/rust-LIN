@@ -38,9 +38,13 @@ pub(crate) mod base64_serde;
 pub mod bus;
 pub mod error;
 pub mod frame;
+pub mod ldf;
 pub mod master;
 pub mod mock;
 pub mod relay;
+pub mod safety;
+pub mod seooc;
+pub mod slave;
 pub mod virtual_bus;
 
 /// §13.7.2 standard RELAY module name for the in-process virtual transport.
