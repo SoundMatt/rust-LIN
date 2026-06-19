@@ -6,7 +6,7 @@
 //! rust-LIN — LIN bus library for Rust.
 //!
 //! Provides a virtual bus, master/slave node support, LDF parser, and safety
-//! E2E protection. Conforms to RELAY spec v1.10.
+//! E2E protection. Conforms to RELAY spec v1.11.
 //!
 //! # Quick start
 //!
@@ -61,7 +61,7 @@ pub use frame::{
 };
 
 /// The RELAY spec version this implementation targets.
-pub const SPEC_VERSION: &str = "1.10";
+pub const SPEC_VERSION: &str = "1.11";
 
 /// Alias for `SPEC_VERSION` for explicitness in CLI contexts.
-pub const RELAY_SPEC_VERSION: &str = "1.10";
+pub const RELAY_SPEC_VERSION: &str = "1.11";

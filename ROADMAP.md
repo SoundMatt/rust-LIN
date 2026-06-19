@@ -6,7 +6,7 @@
 - `VirtualBus` in-process implementation.
 - `MockBus` test double with frame injection.
 - `MasterNode` schedule table executor.
-- RELAY v1.10 adapter (`adapt`, `to_message`, `from_message`).
+- RELAY v1.11 adapter (`adapt`, `to_message`, `from_message`).
 - LIN 2.x PID computation and checksum (classic and enhanced).
 - Frame validation (ID, length, diagnostic checksum enforcement).
 - ASIL-B FuSa annotations on all exported functions and tests.

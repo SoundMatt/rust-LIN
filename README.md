@@ -7,7 +7,7 @@ The `Bus` and `MasterBus` traits are stable. Implementations are swappable witho
 
 [![CI](https://github.com/SoundMatt/rust-LIN/actions/workflows/ci.yml/badge.svg)](https://github.com/SoundMatt/rust-LIN/actions/workflows/ci.yml)
 
-**RELAY spec:** v1.10 · **Safety:** ASIL-B (ISO 26262) · **Language:** Rust 2021
+**RELAY spec:** v1.11 · **Safety:** ASIL-B (ISO 26262) · **Language:** Rust 2021
 
 ---
 
@@ -19,7 +19,7 @@ The `Bus` and `MasterBus` traits are stable. Implementations are swappable witho
 | `virtual_bus` | In-process bus — zero OS dependencies, master+slave | All |
 | `mock` | Mock bus for unit testing with frame injection | All |
 | `master` | `MasterNode` — schedule table execution, callbacks | All |
-| `adapt` | RELAY v1.10 adapter — `adapt()`, `to_message()`, `from_message()` | All |
+| `adapt` | RELAY v1.11 adapter — `adapt()`, `to_message()`, `from_message()` | All |
 
 ---
 

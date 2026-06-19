@@ -88,15 +88,15 @@ ISO 26262-8 §11 / IEC 61508-3 §7.4.4 Method 3.
 
 ---
 
-## Sub-claim SC-07 — RELAY v1.10 conformance
+## Sub-claim SC-07 — RELAY v1.11 conformance
 
-**Claim:** rust-LIN correctly implements the RELAY v1.10 protocol adapter
+**Claim:** rust-LIN correctly implements the RELAY v1.11 protocol adapter
 contract for Protocol::Lin (3).
 
 **Evidence:**
 - `relay conform --strict` passes in CI (conformance job).
 - Golden vector tests in `testdata/relay-vectors/` pass in integration suite.
-- `RELAY_SPEC_VERSION = "1.10"` constant exported from library.
+- `RELAY_SPEC_VERSION = "1.11"` constant exported from library.
 
 ---
 

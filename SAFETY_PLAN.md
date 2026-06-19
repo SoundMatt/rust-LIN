@@ -20,7 +20,7 @@ version 0.2.0) and its CLI binary (`rust-lin`). The library implements:
 - LIN Description File 2.x parser (`ldf::parse`) — `src/ldf/`
 - End-to-end safety protection (`safety::Protector`/`Receiver`) — `src/safety/`
 - ISO 26262 SEOOC declarations — `src/seooc.rs`
-- RELAY v1.10 protocol adapter — `src/adapt.rs`
+- RELAY v1.11 protocol adapter — `src/adapt.rs`
 
 **Target ASIL:** ASIL-B (ISO 26262-1:2018 §3.6).
 **SEOOC boundary:** rust-LIN is a Safety Element Out Of Context (ISO 26262-10:2018 §9).

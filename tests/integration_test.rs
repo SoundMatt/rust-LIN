@@ -480,8 +480,8 @@ async fn back_pressure_drop_newest() {
 //fusa:test REQ-LIN-001
 #[test]
 fn spec_version_constant() {
-    assert_eq!(rust_lin::SPEC_VERSION, "1.10");
-    assert_eq!(rust_lin::RELAY_SPEC_VERSION, "1.10");
+    assert_eq!(rust_lin::SPEC_VERSION, "1.11");
+    assert_eq!(rust_lin::RELAY_SPEC_VERSION, "1.11");
 }
 
 // ---------------------------------------------------------------------------
