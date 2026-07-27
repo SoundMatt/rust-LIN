@@ -1,6 +1,6 @@
 [package]
 name = "rust-lin"
-version = "0.1.0"
+version = "0.4.1"
 edition = "2021"
 description = "rust-LIN: Rust library for LIN bus (Local Interconnect Network) — LIN 2.x, virtual bus, LDF parser, master/slave nodes, safety E2E"
 license = "MPL-2.0"

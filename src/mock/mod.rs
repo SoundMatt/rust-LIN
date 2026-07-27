@@ -20,7 +20,8 @@ use tokio::sync::Mutex;
 use crate::bus::{Bus, FrameReceiver, MasterBus, SubInner};
 use crate::error::Error;
 use crate::frame::{
-    calc_checksum, protect_id, ChecksumType, Filter, Frame, ScheduleEntry, LIN_MAX_ID,
+    calc_checksum, protect_id, ChecksumType, Filter, Frame, ScheduleEntry, LIN_MAX_DATA_LEN,
+    LIN_MAX_ID,
 };
 use crate::relay::{Context, SubscriberOptions};
 
@@ -92,6 +93,12 @@ impl Bus for MockBus {
     async fn publish(&self, id: u8, data: Option<Vec<u8>>) -> Result<(), Error> {
         if self.closed.load(Ordering::SeqCst) {
             return Err(Error::Closed);
+        }
+        // §5.1/§15.3: reject payloads over LIN_MAX_DATA_LEN with PayloadTooLarge.
+        if let Some(ref d) = data {
+            if d.len() > LIN_MAX_DATA_LEN {
+                return Err(Error::PayloadTooLarge);
+            }
         }
         self.published.lock().await.push((id, data.clone()));
         let mut responses = self.responses.lock().await;
@@ -248,5 +255,18 @@ mod tests {
         bus.close().await.unwrap();
         let err = bus.publish(0x10, Some(vec![0x01])).await.unwrap_err();
         assert!(matches!(err, Error::Closed));
+    }
+
+    #[tokio::test]
+    async fn publish_rejects_oversized_payload() {
+        let bus = MockBus::new();
+        let err = bus.publish(0x10, Some(vec![0u8; 9])).await.unwrap_err();
+        assert!(matches!(err, Error::PayloadTooLarge));
+    }
+
+    #[tokio::test]
+    async fn publish_accepts_max_data_len() {
+        let bus = MockBus::new();
+        bus.publish(0x10, Some(vec![0u8; 8])).await.unwrap();
     }
 }

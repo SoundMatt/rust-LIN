@@ -1,4 +1,4 @@
-# Architecture — rust-LIN v0.2.0
+# Architecture — rust-LIN
 
 ## Overview
 
