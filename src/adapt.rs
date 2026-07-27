@@ -15,7 +15,7 @@ use tokio::sync::mpsc;
 
 use crate::bus::Bus;
 use crate::error::Error;
-use crate::frame::{ChecksumType, Frame, LIN_MAX_ID};
+use crate::frame::{ChecksumType, Frame, LIN_MAX_DATA_LEN, LIN_MAX_ID};
 use crate::relay::{BackPressurePolicy, Context, Message, Protocol, SubscriberOptions};
 
 // ---------------------------------------------------------------------------
@@ -118,18 +118,24 @@ impl crate::relay::Node for LinAdapter {
     }
 
     /// Send a relay::Message by converting to a LIN publish call.
+    ///
+    /// Enforces `LIN_MAX_DATA_LEN` (§15.3) directly on the payload so
+    /// `ErrPayloadTooLarge` (§5.1) is returned for real oversized payloads,
+    /// independent of whichever `Bus` implementation is behind this adapter.
+    /// Structural conversion failures (bad ID, wrong protocol) are mapped via
+    /// `Error::kind()` rather than being collapsed into `PayloadTooLarge`.
+    //fusa:req REQ-LIN-021
+    //fusa:req REQ-SEC-002
     async fn send(&self, _ctx: Context, msg: Message) -> Result<(), crate::relay::Error> {
-        let frame = from_message(&msg).map_err(|_| crate::relay::Error::PayloadTooLarge)?;
+        if msg.payload.len() > LIN_MAX_DATA_LEN {
+            return Err(crate::relay::Error::PayloadTooLarge);
+        }
+        let frame =
+            from_message(&msg).map_err(|e| e.kind().unwrap_or(crate::relay::Error::Closed))?;
         self.bus
             .publish(frame.id, Some(frame.data))
             .await
-            .map_err(|e| match e {
-                Error::Closed => crate::relay::Error::Closed,
-                Error::NotConnected => crate::relay::Error::NotConnected,
-                Error::Timeout => crate::relay::Error::Timeout,
-                Error::PayloadTooLarge => crate::relay::Error::PayloadTooLarge,
-                _ => crate::relay::Error::Closed,
-            })
+            .map_err(|e| e.kind().unwrap_or(crate::relay::Error::Closed))
     }
 
     /// Subscribe to the bus and forward frames as relay::Messages.
@@ -291,5 +297,48 @@ mod tests {
         let published = mock.published_responses().await;
         assert_eq!(published.len(), 1);
         assert_eq!(published[0].0, 0x10);
+    }
+
+    //fusa:test REQ-LIN-021
+    //fusa:test REQ-SEC-002
+    #[tokio::test]
+    async fn send_rejects_oversized_payload_with_payload_too_large() {
+        use crate::mock::MockBus;
+        let mock = Arc::new(MockBus::new());
+        let node = adapt(mock.clone());
+
+        let big_payload = vec![0u8; 200]; // 25x over LIN_MAX_DATA_LEN (8)
+        let msg = Message::new(Protocol::Lin, "16", big_payload);
+
+        let result = node.send(Context::background(), msg).await;
+        assert_eq!(result, Err(crate::relay::Error::PayloadTooLarge));
+        // The oversized payload must never have reached the bus.
+        assert!(mock.published_responses().await.is_empty());
+    }
+
+    //fusa:test REQ-LIN-021
+    #[tokio::test]
+    async fn send_malformed_id_does_not_return_payload_too_large() {
+        use crate::mock::MockBus;
+        let mock = Arc::new(MockBus::new());
+        let node = adapt(mock.clone());
+
+        let msg = Message::new(Protocol::Lin, "not_a_number", vec![0x01]);
+        let result = node.send(Context::background(), msg).await;
+
+        assert!(result.is_err());
+        assert_ne!(result.unwrap_err(), crate::relay::Error::PayloadTooLarge);
+    }
+
+    //fusa:test REQ-LIN-021
+    #[tokio::test]
+    async fn send_bus_payload_too_large_propagates() {
+        use crate::mock::MockBus;
+        // A payload right at the LIN_MAX_DATA_LEN boundary passes the
+        // adapter's own check, but MockBus::publish must still enforce the
+        // limit for callers that bypass the adapter's fast-path.
+        let mock = Arc::new(MockBus::new());
+        let err = mock.publish(0x10, Some(vec![0u8; 9])).await.unwrap_err();
+        assert!(matches!(err, Error::PayloadTooLarge));
     }
 }

@@ -19,6 +19,9 @@ The `Bus` and `MasterBus` traits are stable. Implementations are swappable witho
 | `virtual_bus` | In-process bus — zero OS dependencies, master+slave | All |
 | `mock` | Mock bus for unit testing with frame injection | All |
 | `master` | `MasterNode` — schedule table execution, callbacks | All |
+| `slave` | `SlaveNode` — registers/removes slave response registrations | All |
+| `ldf` | LIN Description File (LDF) parser — nodes, frames, signals, schedule tables | All |
+| `safety` | ISO 26262 ASIL-B end-to-end (E2E) data protection — `Protector`/`Receiver` | All |
 | `adapt` | RELAY v1.11 adapter — `adapt()`, `to_message()`, `from_message()` | All |
 
 ---

@@ -25,7 +25,7 @@ use crate::bus::{Bus, FrameReceiver, HealthProvider, MasterBus, MetricsProvider,
 use crate::error::Error;
 use crate::frame::{
     calc_checksum, protect_id, validate_frame, ChecksumType, Filter, Frame, ScheduleEntry,
-    LIN_MAX_ID,
+    LIN_MAX_DATA_LEN, LIN_MAX_ID,
 };
 use crate::relay::{Context, Health, Metrics, SubscriberOptions};
 
@@ -164,6 +164,14 @@ impl VirtualBus {
                 "frame ID 0x{:02X} exceeds maximum 0x{:02X}",
                 id, LIN_MAX_ID
             )));
+        }
+        // §5.1/§15.3: reject payloads over LIN_MAX_DATA_LEN with PayloadTooLarge
+        // (distinct from validate_frame's structural ErrInvalidFrame, per §5.3).
+        if let Some(ref d) = data {
+            if d.len() > LIN_MAX_DATA_LEN {
+                self.error_count.fetch_add(1, Ordering::Relaxed);
+                return Err(Error::PayloadTooLarge);
+            }
         }
         let mut guard = self.inner.lock().await;
         match data {
@@ -438,6 +446,21 @@ mod tests {
         let bus = VirtualBus::new();
         let err = bus.publish(0x40, Some(vec![0x01])).await.unwrap_err();
         assert!(matches!(err, Error::InvalidFrame { .. }));
+    }
+
+    //fusa:test REQ-VIRT-004
+    #[tokio::test]
+    async fn publish_rejects_oversized_payload() {
+        let bus = VirtualBus::new();
+        let err = bus.publish(0x10, Some(vec![0u8; 9])).await.unwrap_err();
+        assert!(matches!(err, Error::PayloadTooLarge));
+    }
+
+    //fusa:test REQ-VIRT-004
+    #[tokio::test]
+    async fn publish_accepts_max_data_len() {
+        let bus = VirtualBus::new();
+        bus.publish(0x10, Some(vec![0u8; 8])).await.unwrap();
     }
 
     //fusa:test REQ-VIRT-005
