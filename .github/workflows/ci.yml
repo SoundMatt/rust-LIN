@@ -254,7 +254,7 @@ jobs:
         run: go install github.com/SoundMatt/RELAY/cmd/relay@v1.11.0
 
       - name: RELAY conformance (strict)
-        run: relay conform ./target/release/rust-lin --strict
+        run: relay conform --strict ./target/release/rust-lin
 
       - name: RELAY interop (LIN golden vectors — must be EQUIVALENT)
         run: |
