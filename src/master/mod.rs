@@ -190,7 +190,9 @@ mod tests {
     #[tokio::test]
     async fn run_returns_on_context_expiry() {
         let bus = Arc::new(MockBus::new());
-        bus.publish(0x10, Some(vec![0x01])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
 
         let mut node = MasterNode::new(bus);
         node.set_schedule(vec![ScheduleEntry {
@@ -198,7 +200,7 @@ mod tests {
             delay_ms: 0,
         }])
         .await
-        .unwrap();
+        .expect("value must be present in this test");
 
         // Very short timeout
         let ctx = Context::with_timeout(std::time::Duration::from_millis(10));
@@ -214,7 +216,9 @@ mod tests {
     #[tokio::test]
     async fn run_invokes_callbacks_in_schedule_order() {
         let bus = Arc::new(MockBus::new());
-        bus.publish(0x10, Some(vec![0x01])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
         // 0x20 has no response — triggers on_error
 
         let mut node = MasterNode::new(bus);
@@ -229,7 +233,7 @@ mod tests {
             },
         ])
         .await
-        .unwrap();
+        .expect("value must be present in this test");
 
         let frame_count = Arc::new(AtomicU32::new(0));
         let error_count = Arc::new(AtomicU32::new(0));
@@ -263,9 +267,14 @@ mod tests {
     #[tokio::test]
     async fn send_header_delegates_to_bus() {
         let bus = Arc::new(MockBus::new());
-        bus.publish(0x10, Some(vec![0x01, 0x02])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
         let node = MasterNode::new(bus.clone());
-        let frame = node.send_header(Context::background(), 0x10).await.unwrap();
+        let frame = node
+            .send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(frame.id, 0x10);
         // Verify it was recorded on the bus
         let ids = bus.sent_header_ids().await;
@@ -276,13 +285,17 @@ mod tests {
     #[tokio::test]
     async fn set_schedule_stores_defensive_copy() {
         let bus = Arc::new(MockBus::new());
-        bus.publish(0x10, Some(vec![0x01])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
         let mut node = MasterNode::new(bus);
         let mut entries = vec![ScheduleEntry {
             id: 0x10,
             delay_ms: 0,
         }];
-        node.set_schedule(entries.clone()).await.unwrap();
+        node.set_schedule(entries.clone())
+            .await
+            .expect("async operation must succeed in this test");
         // Mutate caller's slice
         entries[0].id = 0x20;
         // Node's schedule must still have 0x10

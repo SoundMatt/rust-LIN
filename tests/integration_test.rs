@@ -5,8 +5,8 @@
 
 //! Integration tests for rust-LIN.
 //!
-//! Every test is annotated with `//fusa:test` so that rsfusa verify can trace
-//! it to the requirement it verifies.
+//! Every test carries a `fusa:test` trace annotation (see CODING_STANDARD.md)
+//! so that `rsfusa verify` can trace it to the requirement it verifies.
 
 use std::sync::Arc;
 

@@ -1,7 +1,12 @@
 {
-  "tool": "rsfusa",
-  "version": "0.5",
-  "project": "rust-LIN",
+  "configVersion": "1.0",
+  "project": {
+    "name": "rust-LIN",
+    "version": "0.4.1"
+  },
+  "standard": "iso26262",
   "asil": "ASIL-B",
-  "protocol": "LIN"
+  "sourceDirs": ["src"],
+  "excludePatterns": ["target/**"],
+  "strict": true
 }

@@ -1,9 +1,9 @@
 # Tool Qualification — rsfusa (TQL-2)
 
 **Tool:** rsfusa (rust-FuSa static analyser and safety toolchain)  
-**Version:** 0.5.x  
+**Version:** v0.3.14  
 **Qualification level:** TQL-2 (IEC 61508-3 §7.4.4 / ISO 26262-8 §11)  
-**Date:** 2026-06-19  
+**Date:** 2026-07-29  
 **Author:** Matt Jones
 
 ---
@@ -14,7 +14,7 @@
 |---|---|
 | Tool name | rsfusa |
 | Repository | https://github.com/SoundMatt/rust-FuSa |
-| Version | 0.5 (as specified in `.fusa.json`) |
+| Version | v0.3.14 (pinned via `--tag v0.3.14` in `.github/workflows/ci.yml` and `release.yml`) |
 | Purpose | Static analysis, requirement traceability, FMEA, HARA, TARA, SBOM, tool qualification, safety-case assembly |
 
 ## 2. Tool classification
@@ -50,8 +50,15 @@ Method 2 — Validation against known inputs.
 | Traceability reports depend on annotation discipline | CI fails on missing `//fusa:req` via `rsfusa check --strict` |
 | FMEA / HARA / TARA generation is semi-automated | Manual review of generated JSON required before each release |
 
-## 5. Conclusion
+## 5. Qualification badge (rsfusa spec §1.6.2)
 
-`rsfusa` 0.5 is qualified at TQL-2 for use as a verification-support tool
+CI runs `rsfusa qualify --qualification-method self --qualifier "SoundMatt /
+rust-LIN maintainers" --record-uri <this document>`, which resolves to the
+`self-qualified` badge (16/16 built-in qualification cases pass). CI fails
+the job if the badge ever regresses to `unqualified`.
+
+## 6. Conclusion
+
+`rsfusa` v0.3.14 is qualified at TQL-2 for use as a verification-support tool
 in the rust-LIN ASIL-B development process under ISO 26262-8 §11 / IEC
 61508-3 §7.4.4 Methods 1 and 2.

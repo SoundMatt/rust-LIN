@@ -176,13 +176,11 @@ impl VirtualBus {
         let mut guard = self.inner.lock().await;
         match data {
             Some(d) => {
-                guard.responses.insert(
-                    id,
-                    SlaveResponse {
-                        data: d,
-                        checksum_type: ct,
-                    },
-                );
+                let resp = SlaveResponse {
+                    data: d,
+                    checksum_type: ct,
+                };
+                guard.responses.insert(id, resp);
             }
             None => {
                 guard.responses.remove(&id);
@@ -409,10 +407,15 @@ mod tests {
                 SubscriberOptions::default(),
             )
             .await
-            .unwrap();
+            .expect("value must be present in this test");
 
-        bus.publish(0x10, Some(vec![0x01, 0x02])).await.unwrap();
-        let frame = bus.send_header(Context::background(), 0x10).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
+        let frame = bus
+            .send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
 
         assert_eq!(frame.id, 0x10);
         assert_eq!(frame.data, vec![0x01, 0x02]);
@@ -422,7 +425,10 @@ mod tests {
         assert_eq!(frame.checksum, expected_cs);
 
         // Frame must arrive at subscriber
-        let recv = rx.recv().await.unwrap();
+        let recv = rx
+            .recv()
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(recv.id, 0x10);
     }
 
@@ -431,8 +437,12 @@ mod tests {
     #[tokio::test]
     async fn publish_none_removes_response() {
         let bus = VirtualBus::new();
-        bus.publish(0x10, Some(vec![0x01])).await.unwrap();
-        bus.publish(0x10, None).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
+        bus.publish(0x10, None)
+            .await
+            .expect("async operation must succeed in this test");
         let err = bus
             .send_header(Context::background(), 0x10)
             .await
@@ -460,14 +470,18 @@ mod tests {
     #[tokio::test]
     async fn publish_accepts_max_data_len() {
         let bus = VirtualBus::new();
-        bus.publish(0x10, Some(vec![0u8; 8])).await.unwrap();
+        bus.publish(0x10, Some(vec![0u8; 8]))
+            .await
+            .expect("async operation must succeed in this test");
     }
 
     //fusa:test REQ-VIRT-005
     #[tokio::test]
     async fn publish_after_close_returns_error() {
         let bus = VirtualBus::new();
-        bus.close().await.unwrap();
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test");
         let err = bus.publish(0x10, Some(vec![0x01])).await.unwrap_err();
         assert!(matches!(err, Error::Closed));
     }
@@ -508,16 +522,27 @@ mod tests {
                 SubscriberOptions::default(),
             )
             .await
-            .unwrap();
+            .expect("value must be present in this test");
 
-        bus.publish(0x20, Some(vec![0x01])).await.unwrap();
-        bus.publish(0x10, Some(vec![0x02])).await.unwrap();
+        bus.publish(0x20, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
+        bus.publish(0x10, Some(vec![0x02]))
+            .await
+            .expect("async operation must succeed in this test");
 
         // 0x20 should NOT arrive (filter isolates 0x10)
-        bus.send_header(Context::background(), 0x20).await.unwrap();
-        bus.send_header(Context::background(), 0x10).await.unwrap();
+        bus.send_header(Context::background(), 0x20)
+            .await
+            .expect("async operation must succeed in this test");
+        bus.send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
 
-        let f = rx.recv().await.unwrap();
+        let f = rx
+            .recv()
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(f.id, 0x10);
     }
 
@@ -532,15 +557,25 @@ mod tests {
                 SubscriberOptions::default(),
             )
             .await
-            .unwrap();
+            .expect("value must be present in this test");
 
         for id in [0x10u8, 0x20u8] {
-            bus.publish(id, Some(vec![0x01])).await.unwrap();
-            bus.send_header(Context::background(), id).await.unwrap();
+            bus.publish(id, Some(vec![0x01]))
+                .await
+                .expect("async operation must succeed in this test");
+            bus.send_header(Context::background(), id)
+                .await
+                .expect("async operation must succeed in this test");
         }
 
-        let f1 = rx.recv().await.unwrap();
-        let f2 = rx.recv().await.unwrap();
+        let f1 = rx
+            .recv()
+            .await
+            .expect("async operation must succeed in this test");
+        let f2 = rx
+            .recv()
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(f1.id, 0x10);
         assert_eq!(f2.id, 0x20);
     }
@@ -559,9 +594,11 @@ mod tests {
                 },
             )
             .await
-            .unwrap();
+            .expect("value must be present in this test");
 
-        bus.publish(0x10, Some(vec![0x01])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
         // Fill and overflow — must not block
         for _ in 0..5 {
             let _ = bus.send_header(Context::background(), 0x10).await;
@@ -579,20 +616,36 @@ mod tests {
                 SubscriberOptions::default(),
             )
             .await
-            .unwrap();
+            .expect("value must be present in this test");
         let rx2 = bus
             .subscribe(
                 vec![Filter { id: 0, all: true }],
                 SubscriberOptions::default(),
             )
             .await
-            .unwrap();
+            .expect("value must be present in this test");
 
-        bus.publish(0x10, Some(vec![0x01])).await.unwrap();
-        bus.send_header(Context::background(), 0x10).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
+        bus.send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
 
-        assert_eq!(rx1.recv().await.unwrap().id, 0x10);
-        assert_eq!(rx2.recv().await.unwrap().id, 0x10);
+        assert_eq!(
+            rx1.recv()
+                .await
+                .expect("async operation must succeed in this test")
+                .id,
+            0x10
+        );
+        assert_eq!(
+            rx2.recv()
+                .await
+                .expect("async operation must succeed in this test")
+                .id,
+            0x10
+        );
     }
 
     //fusa:test REQ-VIRT-015
@@ -600,8 +653,12 @@ mod tests {
     #[tokio::test]
     async fn close_is_idempotent() {
         let bus = VirtualBus::new();
-        bus.close().await.unwrap();
-        bus.close().await.unwrap(); // must not error
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test");
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test"); // must not error
         assert_eq!(bus.health().status, crate::relay::HealthStatus::Down);
     }
 
@@ -609,7 +666,9 @@ mod tests {
     #[tokio::test]
     async fn send_header_after_close_returns_error() {
         let bus = VirtualBus::new();
-        bus.close().await.unwrap();
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test");
         let err = bus
             .send_header(Context::background(), 0x10)
             .await
@@ -622,7 +681,9 @@ mod tests {
     async fn concurrent_access_no_panic() {
         use tokio::task::JoinSet;
         let bus = Arc::new(VirtualBus::new());
-        bus.publish(0x10, Some(vec![0x01, 0x02])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
 
         let mut set = JoinSet::new();
         for _ in 0..4 {
@@ -641,11 +702,16 @@ mod tests {
     async fn publish_stores_defensive_copy() {
         let bus = VirtualBus::new();
         let mut data = vec![0x01, 0x02];
-        bus.publish(0x10, Some(data.clone())).await.unwrap();
+        bus.publish(0x10, Some(data.clone()))
+            .await
+            .expect("async operation must succeed in this test");
         // Mutate caller's slice
         data[0] = 0xFF;
         // Stored response must still have original
-        let frame = bus.send_header(Context::background(), 0x10).await.unwrap();
+        let frame = bus
+            .send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(frame.data[0], 0x01);
     }
 
@@ -658,9 +724,13 @@ mod tests {
                 SubscriberOptions::default(),
             )
             .await
-            .unwrap();
-        bus.publish(0x10, Some(vec![0x01, 0x02])).await.unwrap();
-        bus.send_header(Context::background(), 0x10).await.unwrap();
+            .expect("value must be present in this test");
+        bus.publish(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
+        bus.send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
         let m = bus.metrics();
         assert_eq!(m.write_count, 1);
         assert_eq!(m.deliver_count, 1);

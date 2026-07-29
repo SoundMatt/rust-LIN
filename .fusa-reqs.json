@@ -990,6 +990,156 @@
       "tags": [
         "mock"
       ]
+    },
+    {
+      "id": "REQ-VIRT-013",
+      "title": "VirtualBus send_header applies back-pressure without blocking",
+      "description": "send_header broadcasts to subscribers per each queue's back-pressure policy; a full subscriber queue drops the frame rather than blocking the broadcaster",
+      "asil": "ASIL-B",
+      "rationale": "internal: send_header broadcasts to subscribers per each queue's back-",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-014",
+      "title": "VirtualBus subscribe delivers to multiple subscribers independently",
+      "description": "Each subscriber receives its own copy of matching frames; one subscriber's queue state does not affect another's delivery",
+      "asil": "ASIL-B",
+      "rationale": "internal: Each subscriber receives its own copy of matching frames; on",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-015",
+      "title": "VirtualBus close is idempotent",
+      "description": "Calling close() more than once does not return an error and does not panic",
+      "asil": "ASIL-B",
+      "rationale": "internal: Calling close() more than once does not return an error and ",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-016",
+      "title": "VirtualBus remains consistently closed after repeated close",
+      "description": "After any number of close() calls, the bus reports closed and rejects further publish/send_header calls with Error::Closed",
+      "asil": "ASIL-B",
+      "rationale": "internal: After any number of close() calls, the bus reports closed an",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-017",
+      "title": "VirtualBus send_header returns Closed after close",
+      "description": "send_header called after close() returns Error::Closed rather than attempting a frame exchange",
+      "asil": "ASIL-B",
+      "rationale": "internal: send_header called after close() returns Error::Closed rathe",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-018",
+      "title": "VirtualBus concurrent access does not panic",
+      "description": "Concurrent publish/subscribe/send_header calls from multiple tasks complete without panicking or deadlocking",
+      "asil": "ASIL-B",
+      "rationale": "internal: Concurrent publish/subscribe/send_header calls from multiple",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-VIRT-019",
+      "title": "VirtualBus publish stores a defensive copy",
+      "description": "publish() copies the caller's data buffer; mutating the caller's buffer after the call does not affect the stored slave response",
+      "asil": "ASIL-B",
+      "rationale": "internal: publish() copies the caller's data buffer; mutating the call",
+      "tags": [
+        "virt"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-006",
+      "title": "MasterNode run invokes on_frame in schedule order",
+      "description": "run() invokes on_frame for each successful schedule slot, in the order the slots appear in the schedule table",
+      "asil": "ASIL-B",
+      "rationale": "internal: run() invokes on_frame for each successful schedule slot, in",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-007",
+      "title": "MasterNode run continues after on_error",
+      "description": "After invoking on_error for a failed slot, run() continues executing the remaining schedule slots rather than aborting",
+      "asil": "ASIL-B",
+      "rationale": "internal: After invoking on_error for a failed slot, run() continues e",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-008",
+      "title": "MasterNode run returns Timeout on context expiry",
+      "description": "When the supplied Context expires mid-schedule, run() returns Error::Timeout",
+      "asil": "ASIL-B",
+      "rationale": "internal: When the supplied Context expires mid-schedule, run() return",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-009",
+      "title": "MasterNode run rejects an empty schedule",
+      "description": "Calling run() before a schedule has been installed returns an error rather than looping forever",
+      "asil": "ASIL-B",
+      "rationale": "internal: Calling run() before a schedule has been installed returns a",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-010",
+      "title": "MasterNode set_schedule rejects an empty entries list",
+      "description": "set_schedule(vec![]) returns Error::Other rather than installing an empty schedule",
+      "asil": "ASIL-B",
+      "rationale": "internal: set_schedule(vec![]) returns Error::Other rather than instal",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-011",
+      "title": "MasterNode set_schedule rejects an out-of-range frame ID",
+      "description": "set_schedule rejects any entry whose id exceeds LIN_MAX_ID with Error::InvalidFrame",
+      "asil": "ASIL-B",
+      "rationale": "internal: set_schedule rejects any entry whose id exceeds LIN_MAX_ID w",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-012",
+      "title": "MasterNode set_schedule stores a defensive copy",
+      "description": "set_schedule copies the caller's entries; mutating the caller's Vec after the call does not affect the installed schedule",
+      "asil": "ASIL-B",
+      "rationale": "internal: set_schedule copies the caller's entries; mutating the calle",
+      "tags": [
+        "master"
+      ]
+    },
+    {
+      "id": "REQ-MASTER-013",
+      "title": "MasterNode run invokes callbacks in schedule order",
+      "description": "run() invokes on_frame/on_error for each slot strictly in schedule order, matching the order entries were installed",
+      "asil": "ASIL-B",
+      "rationale": "internal: run() invokes on_frame/on_error for each slot strictly in sc",
+      "tags": [
+        "master"
+      ]
     }
   ]
 }
