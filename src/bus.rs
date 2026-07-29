@@ -140,13 +140,23 @@ impl FrameReceiver {
     /// Returns `None` when the bus is closed and the queue is drained.
     pub async fn recv(&self) -> Option<Frame> {
         loop {
+            // Register interest in the next notification *before* checking
+            // the queue/closed state, per `Notify::notify_waiters()`'s own
+            // documented contract: a `notified()` future only observes a
+            // wakeup if it already existed at the time `notify_waiters()`
+            // was called. Checking state first and building the future
+            // second leaves a window where `close()` can run entirely
+            // between the two — the flag flips and the wakeup fires, but
+            // this receiver never sees either, and hangs forever awaiting
+            // a `notified()` future built after the fact.
+            let notified = self.inner.notify.notified();
             if let Some(f) = self.inner.pop() {
                 return Some(f);
             }
             if self.inner.closed.load(Ordering::SeqCst) {
                 return self.inner.pop();
             }
-            self.inner.notify.notified().await;
+            notified.await;
         }
     }
 
@@ -292,5 +302,37 @@ mod tests {
         let got = rx.recv().await.unwrap();
         assert_eq!(got.id, 0x20);
         assert!(rx.recv().await.is_none());
+    }
+
+    /// Regression test for the missed-wakeup race: `recv()` pending on an
+    /// *empty* queue must still return when `close()` runs concurrently,
+    /// rather than hanging forever waiting on a `notified()` future that
+    /// was registered after `notify_waiters()` already fired. No frame is
+    /// pushed first, so — unlike `frame_receiver_recv_and_close` above —
+    /// `recv()` cannot return via the `pop()` fast path and must actually
+    /// observe the close.
+    #[tokio::test]
+    async fn frame_receiver_recv_returns_on_close_while_pending() {
+        let inner = Arc::new(SubInner::new(4, BackPressurePolicy::DropNewest, 0));
+        let rx = FrameReceiver {
+            inner: inner.clone(),
+        };
+
+        let recv_task = tokio::spawn(async move { rx.recv().await });
+
+        // Let the spawned task run up to its first suspension point. Inside
+        // `recv()` that's the `notified.await` — `pop()`/`closed.load()`
+        // are both synchronous, so this parks the task exactly where the
+        // race would bite.
+        tokio::task::yield_now().await;
+        tokio::task::yield_now().await;
+
+        inner.close();
+
+        let result = tokio::time::timeout(std::time::Duration::from_secs(2), recv_task)
+            .await
+            .expect("recv() must return promptly after close(), not hang forever")
+            .expect("recv task must not panic");
+        assert!(result.is_none());
     }
 }
