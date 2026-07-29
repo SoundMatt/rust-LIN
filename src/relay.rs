@@ -330,9 +330,9 @@ mod tests {
     #[test]
     fn protocol_serde_roundtrip() {
         let p = Protocol::Lin;
-        let json = serde_json::to_string(&p).unwrap();
+        let json = serde_json::to_string(&p).expect("to_string must succeed in this test");
         assert_eq!(json, "3");
-        let p2: Protocol = serde_json::from_str(&json).unwrap();
+        let p2: Protocol = serde_json::from_str(&json).expect("from_str must succeed in this test");
         assert_eq!(p, p2);
     }
 

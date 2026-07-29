@@ -59,7 +59,10 @@ impl SlaveNode {
             )));
         }
         self.bus.publish(id, data.clone()).await?;
-        let mut reg = self.registered.lock().unwrap();
+        let mut reg = self
+            .registered
+            .lock()
+            .expect("registered-IDs mutex poisoned by a prior panic");
         if data.is_some() {
             reg.insert(id);
         } else {
@@ -72,7 +75,10 @@ impl SlaveNode {
     //fusa:req REQ-SLAVE-005
     //fusa:req REQ-SLAVE-007
     pub fn registered_ids(&self) -> Vec<u8> {
-        let reg = self.registered.lock().unwrap();
+        let reg = self
+            .registered
+            .lock()
+            .expect("registered-IDs mutex poisoned by a prior panic");
         let mut ids: Vec<u8> = reg.iter().copied().collect();
         ids.sort();
         ids
@@ -113,7 +119,9 @@ mod tests {
     #[tokio::test]
     async fn set_response_registers() {
         let s = make_slave();
-        s.set_response(0x10, Some(vec![0x01, 0x02])).await.unwrap();
+        s.set_response(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
         let ids = s.registered_ids();
         assert_eq!(ids, vec![0x10]);
     }
@@ -122,8 +130,12 @@ mod tests {
     #[tokio::test]
     async fn set_response_nil_removes() {
         let s = make_slave();
-        s.set_response(0x10, Some(vec![0x01])).await.unwrap();
-        s.set_response(0x10, None).await.unwrap();
+        s.set_response(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
+        s.set_response(0x10, None)
+            .await
+            .expect("async operation must succeed in this test");
         assert!(s.registered_ids().is_empty());
     }
 
@@ -138,9 +150,15 @@ mod tests {
     #[tokio::test]
     async fn registered_ids_multiple() {
         let s = make_slave();
-        s.set_response(0x01, Some(vec![1])).await.unwrap();
-        s.set_response(0x02, Some(vec![2])).await.unwrap();
-        s.set_response(0x03, Some(vec![3])).await.unwrap();
+        s.set_response(0x01, Some(vec![1]))
+            .await
+            .expect("async operation must succeed in this test");
+        s.set_response(0x02, Some(vec![2]))
+            .await
+            .expect("async operation must succeed in this test");
+        s.set_response(0x03, Some(vec![3]))
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(s.registered_ids(), vec![0x01, 0x02, 0x03]);
     }
 
@@ -151,7 +169,7 @@ mod tests {
         let rx = s
             .subscribe(vec![], SubscriberOptions::default())
             .await
-            .unwrap();
+            .expect("value must be present in this test");
         // Just confirm the receiver is created successfully.
         drop(rx);
     }
@@ -167,8 +185,12 @@ mod tests {
     #[tokio::test]
     async fn set_response_overwrites_previous() {
         let s = make_slave();
-        s.set_response(0x10, Some(vec![0x01])).await.unwrap();
-        s.set_response(0x10, Some(vec![0x02])).await.unwrap();
+        s.set_response(0x10, Some(vec![0x01]))
+            .await
+            .expect("async operation must succeed in this test");
+        s.set_response(0x10, Some(vec![0x02]))
+            .await
+            .expect("async operation must succeed in this test");
         // ID still registered only once.
         assert_eq!(s.registered_ids(), vec![0x10]);
     }

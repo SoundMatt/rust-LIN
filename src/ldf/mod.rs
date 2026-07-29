@@ -295,16 +295,7 @@ impl LdfParser {
                     db.master_node = name.trim().trim_end_matches(';').trim().to_string();
                 }
             } else if line.starts_with("Slaves:") {
-                let rest = line
-                    .trim_start_matches("Slaves:")
-                    .trim()
-                    .trim_end_matches(';');
-                for s in rest.split(',') {
-                    let s = s.trim().to_string();
-                    if !s.is_empty() {
-                        db.slave_nodes.push(s);
-                    }
-                }
+                db.slave_nodes.extend(parse_slave_list(&line));
             }
         }
     }
@@ -370,27 +361,33 @@ impl LdfParser {
                 let Some(mut frame) = parse_frame_header(&line) else {
                     continue;
                 };
-                while self.pos < self.lines.len() {
-                    let inner = self.peek().to_string();
-                    if inner == "}" {
-                        self.next();
-                        break;
-                    }
-                    self.next();
-                    let inner = inner.trim_end_matches(';').trim().to_string();
-                    let parts: Vec<&str> = inner.splitn(2, ',').collect();
-                    if parts.len() == 2 {
-                        let sig_name = parts[0].trim().to_string();
-                        let bit_offset = parse_int(parts[1].trim()).unwrap_or(0) as usize;
-                        frame.signals.push(SignalRef {
-                            name: sig_name,
-                            bit_offset,
-                        });
-                    }
-                }
+                self.parse_frame_signals(&mut frame);
                 db.frames.insert(frame.id, frame);
             } else {
                 self.next();
+            }
+        }
+    }
+
+    /// Consumes signal-offset lines up to and including the closing `}` of a
+    /// frame block, pushing each parsed entry onto `frame.signals`.
+    fn parse_frame_signals(&mut self, frame: &mut Frame) {
+        while self.pos < self.lines.len() {
+            let inner = self.peek().to_string();
+            if inner == "}" {
+                self.next();
+                return;
+            }
+            self.next();
+            let inner = inner.trim_end_matches(';').trim().to_string();
+            let parts: Vec<&str> = inner.splitn(2, ',').collect();
+            if parts.len() == 2 {
+                let sig_name = parts[0].trim().to_string();
+                let bit_offset = parse_int(parts[1].trim()).unwrap_or(0) as usize;
+                frame.signals.push(SignalRef {
+                    name: sig_name,
+                    bit_offset,
+                });
             }
         }
     }
@@ -408,38 +405,56 @@ impl LdfParser {
             if line.ends_with('{') {
                 let table_name = line.trim_end_matches('{').trim().to_string();
                 self.next();
-                let mut entries: Vec<ScheduleEntry> = Vec::new();
-                while self.pos < self.lines.len() {
-                    let inner = self.peek().to_string();
-                    if inner == "}" {
-                        self.next();
-                        break;
-                    }
-                    self.next();
-                    let inner = inner.trim_end_matches(';').trim().to_string();
-                    if inner.starts_with("AssignFrameId") {
-                        continue;
-                    }
-                    let parts: Vec<&str> = inner.split_whitespace().collect();
-                    if parts.len() >= 3 && parts[1].eq_ignore_ascii_case("delay") {
-                        let delay_ms = parse_uint(parts[2]).unwrap_or(0) as u32;
-                        let id = frame_id_by_name(db, parts[0]);
-                        if id <= crate::frame::LIN_MAX_ID {
-                            entries.push(ScheduleEntry { id, delay_ms });
-                        }
-                    }
-                }
+                let entries = self.parse_schedule_entries(db);
                 db.schedules.insert(table_name, entries);
             } else {
                 self.next();
             }
         }
     }
+
+    /// Consumes schedule-entry lines up to and including the closing `}` of
+    /// a schedule-table block, returning the parsed entries.
+    fn parse_schedule_entries(&mut self, db: &Db) -> Vec<ScheduleEntry> {
+        let mut entries: Vec<ScheduleEntry> = Vec::new();
+        while self.pos < self.lines.len() {
+            let inner = self.peek().to_string();
+            if inner == "}" {
+                self.next();
+                break;
+            }
+            self.next();
+            let inner = inner.trim_end_matches(';').trim().to_string();
+            if inner.starts_with("AssignFrameId") {
+                continue;
+            }
+            let parts: Vec<&str> = inner.split_whitespace().collect();
+            if parts.len() >= 3 && parts[1].eq_ignore_ascii_case("delay") {
+                let delay_ms = parse_uint(parts[2]).unwrap_or(0) as u32;
+                let id = frame_id_by_name(db, parts[0]);
+                if id <= crate::frame::LIN_MAX_ID {
+                    entries.push(ScheduleEntry { id, delay_ms });
+                }
+            }
+        }
+        entries
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Parses a `Slaves: A, B, C;` node-declaration line into node names.
+fn parse_slave_list(line: &str) -> Vec<String> {
+    line.trim_start_matches("Slaves:")
+        .trim()
+        .trim_end_matches(';')
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
 
 fn parse_frame_header(line: &str) -> Option<Frame> {
     let line = line.trim_end_matches('{').trim();
@@ -450,7 +465,8 @@ fn parse_frame_header(line: &str) -> Option<Frame> {
     if parts.len() < 3 {
         return None;
     }
-    let id = parse_int(parts[0].trim()).ok()? as u8;
+    // Reject out-of-range frame IDs rather than silently truncating them.
+    let id = u8::try_from(parse_int(parts[0].trim()).ok()?).ok()?;
     let publisher = parts[1].trim().to_string();
     let length = parse_int(parts[2].trim()).unwrap_or(0) as usize;
     Some(Frame {
@@ -564,28 +580,28 @@ Schedule_tables {
     //fusa:test REQ-LDF-001
     #[test]
     fn parse_protocol_version() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         assert_eq!(db.protocol_version(), "2.1");
     }
 
     //fusa:test REQ-LDF-002
     #[test]
     fn parse_speed() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         assert!((db.speed_kbps() - 19.2).abs() < 0.01);
     }
 
     //fusa:test REQ-LDF-003
     #[test]
     fn parse_master_node() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         assert_eq!(db.master_node(), "ECU");
     }
 
     //fusa:test REQ-LDF-004
     #[test]
     fn parse_slave_nodes() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         let slaves = db.slave_nodes();
         assert!(slaves.contains(&"Seat".to_string()));
         assert!(slaves.contains(&"Mirror".to_string()));
@@ -594,7 +610,7 @@ Schedule_tables {
     //fusa:test REQ-LDF-005
     #[test]
     fn parse_frames() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         let f = db.frame(0x10).expect("SeatFrame at 0x10");
         assert_eq!(f.name, "SeatFrame");
         assert_eq!(f.publisher, "ECU");
@@ -604,8 +620,8 @@ Schedule_tables {
     //fusa:test REQ-LDF-006
     #[test]
     fn parse_signal_refs() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
-        let f = db.frame(0x10).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
+        let f = db.frame(0x10).expect("frame must succeed in this test");
         assert!(!f.signals.is_empty());
         assert_eq!(f.signals[0].name, "SeatPos");
         assert_eq!(f.signals[0].bit_offset, 0);
@@ -614,7 +630,7 @@ Schedule_tables {
     //fusa:test REQ-LDF-007
     #[test]
     fn parse_signal_bit_width() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         let s = db.signal("SeatPos").expect("SeatPos signal");
         assert_eq!(s.bit_width, 8);
     }
@@ -622,31 +638,40 @@ Schedule_tables {
     //fusa:test REQ-LDF-008
     #[test]
     fn parse_signal_publisher() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
-        let s = db.signal("SeatPos").unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
+        let s = db
+            .signal("SeatPos")
+            .expect("signal must succeed in this test");
         assert_eq!(s.publisher, "ECU");
     }
 
     //fusa:test REQ-LDF-009
     #[test]
     fn decode_lsb_first() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         // SeatPos is 8-bit at offset 0; data[0] = 0xAB
-        let result = db.decode(0x10, &[0xAB]).unwrap();
-        assert_eq!(*result.get("SeatPos").unwrap(), 0xAB);
+        let result = db
+            .decode(0x10, &[0xAB])
+            .expect("decode must succeed in this test");
+        assert_eq!(
+            *result
+                .get("SeatPos")
+                .expect("get must succeed in this test"),
+            0xAB
+        );
     }
 
     //fusa:test REQ-LDF-010
     #[test]
     fn decode_unknown_frame_returns_none() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         assert!(db.decode(0x3F, &[0x00]).is_none());
     }
 
     //fusa:test REQ-LDF-011
     #[test]
     fn parse_schedule_table() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         let sched = db.schedule("MainSchedule").expect("MainSchedule");
         assert_eq!(sched.len(), 2);
         assert_eq!(sched[0].id, 0x10);
@@ -656,14 +681,14 @@ Schedule_tables {
     //fusa:test REQ-LDF-012
     #[test]
     fn frame_unknown_id_returns_none() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         assert!(db.frame(0x3F).is_none());
     }
 
     //fusa:test REQ-LDF-013
     #[test]
     fn signal_unknown_name_returns_none() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         assert!(db.signal("NoSuchSignal").is_none());
     }
 
@@ -677,7 +702,7 @@ Schedule_tables {
     //fusa:test REQ-LDF-015
     #[test]
     fn frames_returns_defensive_copy() {
-        let db = parse(SAMPLE_LDF.as_bytes()).unwrap();
+        let db = parse(SAMPLE_LDF.as_bytes()).expect("value must be present in this test");
         let mut copy = db.frames();
         copy.insert(
             0x3F,

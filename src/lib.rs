@@ -33,6 +33,9 @@
 //! }
 //! ```
 
+// ASIL-B: no unsafe code is permitted anywhere in this crate (SC-13, REQ-SEC-006).
+#![forbid(unsafe_code)]
+
 pub mod adapt;
 pub(crate) mod base64_serde;
 pub mod bus;

@@ -2,13 +2,13 @@
   "schema_version": "1.0",
   "project": "rust-LIN",
   "asil": "ASIL-B",
-  "generated": "2026-06-19",
+  "generated": "2026-07-29",
   "requirements": [
     {
       "id": "REQ-LIN-001",
       "title": "PID parity bit P0",
       "description": "protect_id must compute P0 = ID0 XOR ID1 XOR ID2 XOR ID4",
-      "source": "ISO 17987-3:2016 §6.3",
+      "source": "ISO 17987-3:2016 \u00a76.3",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -17,7 +17,7 @@
       "id": "REQ-LIN-002",
       "title": "PID parity bit P1",
       "description": "protect_id must compute P1 = NOT(ID1 XOR ID3 XOR ID4 XOR ID5)",
-      "source": "ISO 17987-3:2016 §6.3",
+      "source": "ISO 17987-3:2016 \u00a76.3",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -26,7 +26,7 @@
       "id": "REQ-LIN-003",
       "title": "Classic checksum covers data only",
       "description": "calc_checksum in Classic mode sums data bytes only (no PID)",
-      "source": "ISO 17987-3:2016 §6.4",
+      "source": "ISO 17987-3:2016 \u00a76.4",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -35,7 +35,7 @@
       "id": "REQ-LIN-004",
       "title": "Enhanced checksum covers PID plus data",
       "description": "calc_checksum in Enhanced mode sums PID byte plus all data bytes",
-      "source": "ISO 17987-3:2016 §6.4",
+      "source": "ISO 17987-3:2016 \u00a76.4",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -44,7 +44,7 @@
       "id": "REQ-LIN-005",
       "title": "Carry-around addition",
       "description": "Checksum sum uses carry-around: when sum exceeds 0xFF subtract 0xFF (not 0x100)",
-      "source": "ISO 17987-3:2016 §6.4",
+      "source": "ISO 17987-3:2016 \u00a76.4",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -53,7 +53,7 @@
       "id": "REQ-LIN-006",
       "title": "Checksum inversion",
       "description": "Final checksum byte is bitwise inverted: result = 0xFF - sum",
-      "source": "ISO 17987-3:2016 §6.4",
+      "source": "ISO 17987-3:2016 \u00a76.4",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -62,7 +62,7 @@
       "id": "REQ-LIN-007",
       "title": "Frame ID range",
       "description": "Frame ID must be in range 0x00..=0x3F; validate_frame rejects id > 0x3F",
-      "source": "ISO 17987-3:2016 §6.2",
+      "source": "ISO 17987-3:2016 \u00a76.2",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -71,7 +71,7 @@
       "id": "REQ-LIN-008",
       "title": "Frame data length",
       "description": "Frame data length must be 1 to 8 bytes inclusive",
-      "source": "ISO 17987-3:2016 §6.2",
+      "source": "ISO 17987-3:2016 \u00a76.2",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -80,7 +80,7 @@
       "id": "REQ-LIN-009",
       "title": "Diagnostic frames require ClassicChecksum",
       "description": "Frames with ID 0x3C or 0x3D must use ClassicChecksum; enhanced is rejected",
-      "source": "ISO 17987-3:2016 §6.5",
+      "source": "ISO 17987-3:2016 \u00a76.5",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -88,7 +88,7 @@
     {
       "id": "REQ-LIN-010",
       "title": "validate_frame enforces all invariants",
-      "description": "validate_frame checks id range, data non-empty, data length ≤ 8, diagnostic checksum type",
+      "description": "validate_frame checks id range, data non-empty, data length \u2264 8, diagnostic checksum type",
       "source": "internal",
       "asil": "ASIL-B",
       "verification": "test",
@@ -125,7 +125,7 @@
       "id": "REQ-LIN-014",
       "title": "NoResponse returned when no slave response registered",
       "description": "send_header returns Error::NoResponse when no response is registered for the requested id",
-      "source": "RELAY spec v1.11 §5.1",
+      "source": "RELAY spec v1.11 \u00a75.1",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -134,7 +134,7 @@
       "id": "REQ-LIN-015",
       "title": "verify_pid rejects incorrect parity",
       "description": "verify_pid returns Err(InvalidFrame) when parity bits in pid do not match computed values",
-      "source": "ISO 17987-3:2016 §6.3",
+      "source": "ISO 17987-3:2016 \u00a76.3",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -170,7 +170,7 @@
       "id": "REQ-LIN-019",
       "title": "to_message sets protocol = 3",
       "description": "RELAY adapter to_message must set Message::protocol = Protocol::Lin (3)",
-      "source": "RELAY spec v1.11 §3.2",
+      "source": "RELAY spec v1.11 \u00a73.2",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -179,7 +179,7 @@
       "id": "REQ-LIN-020",
       "title": "from_message rejects wrong protocol",
       "description": "RELAY adapter from_message returns Err(InvalidFrame) when Message::protocol != Lin",
-      "source": "RELAY spec v1.11 §3.2",
+      "source": "RELAY spec v1.11 \u00a73.2",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -188,7 +188,7 @@
       "id": "REQ-LIN-021",
       "title": "NoResponse kind maps to Timeout",
       "description": "Error::NoResponse::kind() must return relay::Error::Timeout (ErrNoResponse IS Timeout)",
-      "source": "RELAY spec v1.11 §5.1",
+      "source": "RELAY spec v1.11 \u00a75.1",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -376,7 +376,7 @@
     {
       "id": "REQ-SEC-004",
       "title": "LDF parser must not panic on malformed input",
-      "description": "ldf::parse must return Ok(Db) for any input — empty, truncated, or hostile — without panicking",
+      "description": "ldf::parse must return Ok(Db) for any input \u2014 empty, truncated, or hostile \u2014 without panicking",
       "source": "IEC 62443-4-1 SR-1 / TARA-008",
       "asil": "ASIL-B",
       "verification": "test",
@@ -422,7 +422,7 @@
       "id": "REQ-LDF-001",
       "title": "Parse extracts protocol version",
       "description": "ldf::parse shall populate Db::protocol_version from LIN_protocol_version field",
-      "source": "LIN 2.x spec §7.1",
+      "source": "LIN 2.x spec \u00a77.1",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -431,7 +431,7 @@
       "id": "REQ-LDF-002",
       "title": "Parse extracts baud rate",
       "description": "ldf::parse shall populate Db::speed_kbps from LIN_speed field",
-      "source": "LIN 2.x spec §7.1",
+      "source": "LIN 2.x spec \u00a77.1",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -440,7 +440,7 @@
       "id": "REQ-LDF-003",
       "title": "Parse extracts master node name",
       "description": "ldf::parse shall populate Db::master_node from Nodes::Master declaration",
-      "source": "LIN 2.x spec §7.2",
+      "source": "LIN 2.x spec \u00a77.2",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -449,7 +449,7 @@
       "id": "REQ-LDF-004",
       "title": "Parse extracts slave node list",
       "description": "ldf::parse shall populate Db::slave_nodes from Nodes::Slaves declaration",
-      "source": "LIN 2.x spec §7.2",
+      "source": "LIN 2.x spec \u00a77.2",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -458,7 +458,7 @@
       "id": "REQ-LDF-005",
       "title": "Parse populates frame descriptors",
       "description": "ldf::parse shall populate frame id, name, publisher, and length from Frames section",
-      "source": "LIN 2.x spec §7.3",
+      "source": "LIN 2.x spec \u00a77.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -467,7 +467,7 @@
       "id": "REQ-LDF-006",
       "title": "Parse populates signal-to-bit-offset mappings",
       "description": "ldf::parse shall populate SignalRef entries in each frame from Frames section",
-      "source": "LIN 2.x spec §7.3",
+      "source": "LIN 2.x spec \u00a77.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -476,7 +476,7 @@
       "id": "REQ-LDF-007",
       "title": "Parse populates signal bit width",
       "description": "ldf::parse shall populate Signal::bit_width from Signals section",
-      "source": "LIN 2.x spec §7.4",
+      "source": "LIN 2.x spec \u00a77.4",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -485,7 +485,7 @@
       "id": "REQ-LDF-008",
       "title": "Parse populates signal publisher",
       "description": "ldf::parse shall populate Signal::publisher from Signals section",
-      "source": "LIN 2.x spec §7.4",
+      "source": "LIN 2.x spec \u00a77.4",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -494,7 +494,7 @@
       "id": "REQ-LDF-009",
       "title": "Decode uses LSB-first Intel byte order",
       "description": "Db::decode shall extract signal bits using LSB-first (Intel) byte ordering",
-      "source": "LIN 2.x spec §7.5",
+      "source": "LIN 2.x spec \u00a77.5",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -512,7 +512,7 @@
       "id": "REQ-LDF-011",
       "title": "Parse populates schedule table entries",
       "description": "ldf::parse shall populate schedule table name-to-entries mappings from Schedule_tables section",
-      "source": "LIN 2.x spec §7.6",
+      "source": "LIN 2.x spec \u00a77.6",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -556,8 +556,8 @@
     {
       "id": "REQ-SAFETY-001",
       "title": "DataID embedded in header bytes 0-1",
-      "description": "Protector::protect shall write DataID as little-endian u16 at header bytes 0–1",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "description": "Protector::protect shall write DataID as little-endian u16 at header bytes 0\u20131",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -565,8 +565,8 @@
     {
       "id": "REQ-SAFETY-002",
       "title": "SourceID embedded in header bytes 2-3",
-      "description": "Protector::protect shall write SourceID as little-endian u16 at header bytes 2–3",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "description": "Protector::protect shall write SourceID as little-endian u16 at header bytes 2\u20133",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -575,7 +575,7 @@
       "id": "REQ-SAFETY-003",
       "title": "SequenceCounter starts at 0 and increments",
       "description": "Protector SequenceCounter starts at 0 and atomically increments by 1 per protect() call",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -583,8 +583,8 @@
     {
       "id": "REQ-SAFETY-004",
       "title": "SequenceCounter embedded in header bytes 4-7",
-      "description": "Protector::protect shall write SequenceCounter as little-endian u32 at header bytes 4–7",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "description": "Protector::protect shall write SequenceCounter as little-endian u32 at header bytes 4\u20137",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -593,7 +593,7 @@
       "id": "REQ-SAFETY-005",
       "title": "CRC computed over header and payload",
       "description": "CRC-16/CCITT-FALSE (poly=0x1021, init=0xFFFF) computed over header (CRC slot zeroed) + payload",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -601,8 +601,8 @@
     {
       "id": "REQ-SAFETY-006",
       "title": "CRC embedded in header bytes 8-9",
-      "description": "Protector::protect shall write CRC as little-endian u16 at header bytes 8–9",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "description": "Protector::protect shall write CRC as little-endian u16 at header bytes 8\u20139",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -611,7 +611,7 @@
       "id": "REQ-SAFETY-007",
       "title": "Unwrap returns E2eError::HeaderTooShort for payload < 10 bytes",
       "description": "Receiver::unwrap returns E2eError{kind:HeaderTooShort} when data.len() < 10",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -620,7 +620,7 @@
       "id": "REQ-SAFETY-008",
       "title": "Unwrap detects byte corruption via CRC",
       "description": "Receiver::unwrap returns E2eError{kind:CrcMismatch} when CRC check fails",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -629,7 +629,7 @@
       "id": "REQ-SAFETY-009",
       "title": "Unwrap detects sequence gap",
       "description": "Receiver::unwrap returns E2eError{kind:SequenceGap} when received counter != last+1",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -638,7 +638,7 @@
       "id": "REQ-SAFETY-010",
       "title": "Unwrap returns original payload on success",
       "description": "Receiver::unwrap returns the original payload bytes on successful validation",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -647,7 +647,7 @@
       "id": "REQ-SAFETY-011",
       "title": "Protect/Unwrap round-trip preserves payload",
       "description": "protect(payload) followed by unwrap(protected) shall return the original payload unchanged",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -665,7 +665,7 @@
       "id": "REQ-SAFETY-013",
       "title": "Unwrap accepts first message with any counter value",
       "description": "Receiver::unwrap shall accept any counter value on the first call to seed the sequence",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -674,7 +674,7 @@
       "id": "REQ-SAFETY-014",
       "title": "Protect is safe for concurrent calls",
       "description": "Protector::protect may be called from multiple threads concurrently without data races",
-      "source": "ISO 26262-6:2018 §7.4.11",
+      "source": "ISO 26262-6:2018 \u00a77.4.11",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -764,7 +764,7 @@
       "id": "REQ-SEOOC-001",
       "title": "Integrating system provides physical LIN layer",
       "description": "Assumption: the integrating system provides an ISO 17987-compliant physical LIN layer",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "design",
       "status": "implemented"
@@ -773,7 +773,7 @@
       "id": "REQ-SEOOC-002",
       "title": "Integrating system calls validate_frame on external data",
       "description": "Assumption: the integrating system calls validate_frame on any frame received from an external LIN interface",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "design",
       "status": "implemented"
@@ -782,7 +782,7 @@
       "id": "REQ-SEOOC-003",
       "title": "Integrating system validates frame ID semantics",
       "description": "Assumption: the integrating system enforces application-level frame ID semantics beyond the 6-bit range",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "design",
       "status": "implemented"
@@ -791,7 +791,7 @@
       "id": "REQ-SEOOC-004",
       "title": "Integration: virtual bus delivers E2E payload intact",
       "description": "A protect/unwrap round-trip over the virtual bus preserves the original payload",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -800,7 +800,7 @@
       "id": "REQ-SEOOC-005",
       "title": "Integration: master-slave round-trip via virtual bus",
       "description": "A full master-slave publish/send_header/subscribe cycle delivers the registered payload to the subscriber",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -808,8 +808,8 @@
     {
       "id": "REQ-SEOOC-006",
       "title": "Integration: LDF schedule IDs are valid",
-      "description": "All frame IDs derived from an LDF-parsed schedule must be valid LIN IDs (≤ 0x3F)",
-      "source": "ISO 26262-10:2018 §9.7",
+      "description": "All frame IDs derived from an LDF-parsed schedule must be valid LIN IDs (\u2264 0x3F)",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
@@ -818,7 +818,7 @@
       "id": "REQ-SEOOC-007",
       "title": "Integrating system handles ErrNoResponse safely",
       "description": "Assumption: the integrating system treats Error::NoResponse as a recoverable condition and does not propagate it as a fault",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "design",
       "status": "implemented"
@@ -827,7 +827,7 @@
       "id": "REQ-SEOOC-008",
       "title": "Integrating system routes safety-critical frames through safety package",
       "description": "Assumption: the integrating system applies safety::Protector/Receiver to payloads requiring E2E protection",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "design",
       "status": "implemented"
@@ -836,7 +836,7 @@
       "id": "REQ-SEOOC-009",
       "title": "Integrating system provides monotonic clock for timing",
       "description": "Assumption: the integrating system provides a monotonic clock when timing LIN schedule slot delays",
-      "source": "ISO 26262-10:2018 §9.7",
+      "source": "ISO 26262-10:2018 \u00a79.7",
       "asil": "ASIL-B",
       "verification": "design",
       "status": "implemented"
@@ -845,7 +845,7 @@
       "id": "REQ-ADAPT-001",
       "title": "Adapt returns a LIN relay::Node",
       "description": "adapt() wraps a Bus and returns a Box<dyn relay::Node> with Protocol::Lin",
-      "source": "RELAY spec v1.11 §10.3",
+      "source": "RELAY spec v1.11 \u00a710.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -854,7 +854,7 @@
       "id": "REQ-ADAPT-002",
       "title": "LinAdapter::send publishes payload for a valid frame ID",
       "description": "relay::Node::send calls Bus::publish with the parsed frame ID and payload",
-      "source": "RELAY spec v1.11 §10.3",
+      "source": "RELAY spec v1.11 \u00a710.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -863,7 +863,7 @@
       "id": "REQ-ADAPT-003",
       "title": "LinAdapter::send rejects an out-of-range frame ID",
       "description": "relay::Node::send returns relay::Error on non-numeric or out-of-range Message::id",
-      "source": "RELAY spec v1.11 §10.3",
+      "source": "RELAY spec v1.11 \u00a710.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -872,7 +872,7 @@
       "id": "REQ-ADAPT-004",
       "title": "LinAdapter::subscribe converts frames to relay::Message",
       "description": "relay::Node::subscribe returns a channel of relay::Message envelopes with Protocol::Lin and correct meta fields",
-      "source": "RELAY spec v1.11 §10.3",
+      "source": "RELAY spec v1.11 \u00a710.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -881,7 +881,7 @@
       "id": "REQ-ADAPT-005",
       "title": "LinAdapter::close closes the underlying bus",
       "description": "relay::Node::close delegates to Bus::close",
-      "source": "RELAY spec v1.11 §10.3",
+      "source": "RELAY spec v1.11 \u00a710.3",
       "asil": "QM",
       "verification": "test",
       "status": "implemented"
@@ -892,6 +892,141 @@
       "description": "MockBus implements Bus and MasterBus; it records published responses and returns them from send_header",
       "source": "internal",
       "asil": "QM",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-013",
+      "title": "VirtualBus send_header applies back-pressure without blocking",
+      "description": "send_header broadcasts to subscribers per each queue's back-pressure policy; a full subscriber queue drops the frame rather than blocking the broadcaster",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-014",
+      "title": "VirtualBus subscribe delivers to multiple subscribers independently",
+      "description": "Each subscriber receives its own copy of matching frames; one subscriber's queue state does not affect another's delivery",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-015",
+      "title": "VirtualBus close is idempotent",
+      "description": "Calling close() more than once does not return an error and does not panic",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-016",
+      "title": "VirtualBus remains consistently closed after repeated close",
+      "description": "After any number of close() calls, the bus reports closed and rejects further publish/send_header calls with Error::Closed",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-017",
+      "title": "VirtualBus send_header returns Closed after close",
+      "description": "send_header called after close() returns Error::Closed rather than attempting a frame exchange",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-018",
+      "title": "VirtualBus concurrent access does not panic",
+      "description": "Concurrent publish/subscribe/send_header calls from multiple tasks complete without panicking or deadlocking",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-VIRT-019",
+      "title": "VirtualBus publish stores a defensive copy",
+      "description": "publish() copies the caller's data buffer; mutating the caller's buffer after the call does not affect the stored slave response",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-006",
+      "title": "MasterNode run invokes on_frame in schedule order",
+      "description": "run() invokes on_frame for each successful schedule slot, in the order the slots appear in the schedule table",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-007",
+      "title": "MasterNode run continues after on_error",
+      "description": "After invoking on_error for a failed slot, run() continues executing the remaining schedule slots rather than aborting",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-008",
+      "title": "MasterNode run returns Timeout on context expiry",
+      "description": "When the supplied Context expires mid-schedule, run() returns Error::Timeout",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-009",
+      "title": "MasterNode run rejects an empty schedule",
+      "description": "Calling run() before a schedule has been installed returns an error rather than looping forever",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-010",
+      "title": "MasterNode set_schedule rejects an empty entries list",
+      "description": "set_schedule(vec![]) returns Error::Other rather than installing an empty schedule",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-011",
+      "title": "MasterNode set_schedule rejects an out-of-range frame ID",
+      "description": "set_schedule rejects any entry whose id exceeds LIN_MAX_ID with Error::InvalidFrame",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-012",
+      "title": "MasterNode set_schedule stores a defensive copy",
+      "description": "set_schedule copies the caller's entries; mutating the caller's Vec after the call does not affect the installed schedule",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
+      "verification": "test",
+      "status": "implemented"
+    },
+    {
+      "id": "REQ-MASTER-013",
+      "title": "MasterNode run invokes callbacks in schedule order",
+      "description": "run() invokes on_frame/on_error for each slot strictly in schedule order, matching the order entries were installed",
+      "source": "internal design requirement (see CODING_STANDARD.md tagging convention)",
+      "asil": "ASIL-B",
       "verification": "test",
       "status": "implemented"
     }

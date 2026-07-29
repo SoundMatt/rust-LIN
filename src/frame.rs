@@ -51,6 +51,7 @@ pub enum ChecksumType {
 
 impl From<ChecksumType> for u8 {
     fn from(ct: ChecksumType) -> u8 {
+        // safe: ChecksumType is #[repr(u8)] with only discriminants 0 and 1.
         ct as u8
     }
 }
@@ -210,6 +211,7 @@ pub fn calc_checksum(pid: u8, data: &[u8], ct: ChecksumType) -> u8 {
             sum -= 0xFF; // carry-around (not 0x100)
         }
     }
+    // safe: the carry-around step above keeps sum in 0..=0xFF at all times.
     0xFF - (sum as u8)
 }
 
@@ -316,7 +318,7 @@ mod tests {
             let pid = protect_id(id);
             let result = verify_pid(pid);
             assert!(result.is_ok(), "verify_pid(0x{:02X}) failed", pid);
-            assert_eq!(result.unwrap(), id);
+            assert_eq!(result.expect("result must be present in this test"), id);
         }
     }
 
@@ -550,9 +552,10 @@ mod tests {
     #[test]
     fn checksum_type_serde_roundtrip() {
         let ct = ChecksumType::Enhanced;
-        let json = serde_json::to_string(&ct).unwrap();
+        let json = serde_json::to_string(&ct).expect("to_string must succeed in this test");
         assert_eq!(json, "1");
-        let ct2: ChecksumType = serde_json::from_str(&json).unwrap();
+        let ct2: ChecksumType =
+            serde_json::from_str(&json).expect("from_str must succeed in this test");
         assert_eq!(ct, ct2);
     }
 }

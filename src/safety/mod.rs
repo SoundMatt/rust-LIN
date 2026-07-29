@@ -221,7 +221,10 @@ impl Receiver {
 
         let _ = self.cfg; // DataID / SourceID validated implicitly via CRC.
 
-        let mut inner = self.inner.lock().unwrap();
+        let mut inner = self
+            .inner
+            .lock()
+            .expect("E2E state mutex poisoned by a prior panic");
         if !inner.first && seq != inner.last_seq.wrapping_add(1) {
             let prev = inner.last_seq;
             inner.last_seq = seq;
@@ -264,6 +267,7 @@ fn build_protected(cfg: Config, seq: u32, payload: &[u8]) -> Vec<u8> {
 fn crc16(data: &[u8]) -> u16 {
     let mut crc: u16 = 0xFFFF;
     for &b in data {
+        // safe: u8 -> u16 is a widening cast; it cannot discard bits.
         crc ^= (b as u16) << 8;
         for _ in 0..8 {
             if crc & 0x8000 != 0 {
@@ -353,7 +357,7 @@ mod tests {
         let third = p.protect(&[0x03]); // seq=2
 
         let r = Receiver::new(make_cfg());
-        r.unwrap(&first).unwrap(); // seq=0 accepted
+        r.unwrap(&first).expect("unwrap must succeed in this test"); // seq=0 accepted
         let err = r.unwrap(&third).unwrap_err(); // seq=2, expected 1
         assert_eq!(err.kind, ErrorKind::SequenceGap);
     }
@@ -367,7 +371,9 @@ mod tests {
         let r = Receiver::new(cfg);
         let payload = vec![0xDE, 0xAD, 0xBE, 0xEF];
         let protected = p.protect(&payload);
-        let recovered = r.unwrap(&protected).unwrap();
+        let recovered = r
+            .unwrap(&protected)
+            .expect("unwrap must succeed in this test");
         assert_eq!(recovered, payload);
     }
 
@@ -391,7 +397,7 @@ mod tests {
 
         let r = Receiver::new(make_cfg());
         // First call accepts any counter.
-        let recovered = r.unwrap(&third).unwrap();
+        let recovered = r.unwrap(&third).expect("unwrap must succeed in this test");
         assert_eq!(recovered, vec![0xAA]);
     }
 
@@ -407,7 +413,10 @@ mod tests {
             let p = p.clone();
             handles.push(thread::spawn(move || p.protect(&[0x00])));
         }
-        let results: Vec<Vec<u8>> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+        let results: Vec<Vec<u8>> = handles
+            .into_iter()
+            .map(|h| h.join().expect("join must succeed in this test"))
+            .collect();
         // All sequence counters must be distinct.
         let mut seqs: Vec<u32> = results
             .iter()
@@ -426,7 +435,9 @@ mod tests {
         let r = Receiver::new(cfg);
         let payload = vec![0x11, 0x22];
         let protected = p.protect(&payload);
-        let mut recovered = r.unwrap(&protected).unwrap();
+        let mut recovered = r
+            .unwrap(&protected)
+            .expect("unwrap must succeed in this test");
         recovered[0] = 0xFF;
         // Original payload untouched.
         assert_eq!(payload[0], 0x11);

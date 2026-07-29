@@ -53,9 +53,22 @@ jobs:
           cargo install cargo-llvm-cov --locked
           cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
           cargo llvm-cov report --summary-only | tee coverage-summary.txt
-          # Gate: overall line coverage must be ≥ 90 %
-          pct=$(grep -oP 'Lines\s+\K[\d.]+' coverage-summary.txt || echo "0")
+          # Gate: overall line coverage must be >= 80% (current baseline ~85%;
+          # ratchet toward the 90% target as coverage improves — see #16).
+          # The TOTAL row looks like:
+          #   TOTAL  3693  567  84.65%  330  43  86.97%  2485  369  85.15%  0  0  -
+          # i.e. region-cover%, function-cover%, then LINE-cover% as the third
+          # percentage column — pull that one, not the first.
+          pct=$(grep '^TOTAL' coverage-summary.txt | grep -oE '[0-9]+\.[0-9]+%' | sed -n '3p' | tr -d '%')
+          if [ -z "$pct" ]; then
+            echo "::error::could not extract line coverage from coverage-summary.txt"
+            exit 1
+          fi
           echo "Line coverage: ${pct}%"
+          awk -v pct="$pct" 'BEGIN { if (pct + 0 < 80) { exit 1 } }' || {
+            echo "::error::line coverage ${pct}% is below the 80% gate"
+            exit 1
+          }
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && always()
@@ -133,7 +146,7 @@ jobs:
           key: ubuntu-cargo-safety-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install rsfusa
-        run: cargo install --git https://github.com/SoundMatt/rust-FuSa --tag v0.3.10 rsfusa --locked
+        run: cargo install --git https://github.com/SoundMatt/rust-FuSa --tag v0.3.14 rsfusa --locked
 
       - name: Build release binary (needed for qualify)
         run: cargo build --release --locked
@@ -142,57 +155,90 @@ jobs:
         run: cargo test --locked
 
       - name: Capture test evidence with rsfusa
-        run: rsfusa verify --dir . || true
+        run: |
+          # KNOWN UPSTREAM BUG (SoundMatt/rust-FuSa): `rsfusa verify` invokes
+          # `cargo test -- --test-output=immediate`, but that flag does not
+          # exist for cargo's built-in libtest harness ("error: Unrecognized
+          # option: 'test-output'"), so this step always fails regardless of
+          # whether the project's own tests pass — see the `test` step above
+          # in the build-test job for the real, authoritative test result.
+          # Non-blocking until fixed upstream, but loud rather than silent:
+          if ! rsfusa verify --dir .; then
+            echo "::warning title=rsfusa verify (known upstream bug)::rsfusa verify failed due to an invalid --test-output=immediate flag it passes to cargo test; this is a rust-FuSa bug, not a rust-LIN test failure (see build-test job's 'test' step for real results)."
+          fi
 
       - name: Coding standard lint (ISO 26262 Part 6)
-        run: rsfusa lint --dir . --format json --output lint-report.json || true
+        run: rsfusa lint --dir . --format json --output lint-report.json
 
       - name: Static analysis
-        run: rsfusa analyze --dir . --format json --output analyze-report.json || true
+        run: rsfusa analyze --dir . --format json --output analyze-report.json
 
       - name: Safety check (ASIL-B strict — §20.1.2)
-        run: rsfusa check --dir . --strict --format json --output check-report.json || true
+        run: rsfusa check --dir . --strict --format json --output check-report.json
 
       - name: Safety check SARIF (GitHub code scanning)
-        run: rsfusa check --dir . --format sarif --output results.sarif || true
+        run: rsfusa check --dir . --format sarif --output results.sarif
 
       - name: Cyclomatic complexity V(G)
-        run: rsfusa comp --dir . --format json --output comp-report.json || true
+        run: rsfusa comp --dir . --format json --output comp-report.json
 
       - name: Requirement traceability matrix (§20.1.2)
         run: |
-          rsfusa trace --dir . --format json --output trace.json || true
-          rsfusa trace --dir . --format text || true
+          rsfusa trace --dir . --format json --output trace.json
+          rsfusa trace --dir . --format text
 
       - name: FMEA
-        run: rsfusa fmea --dir . || true
+        run: rsfusa fmea --dir .
 
       - name: Threat analysis (TARA)
-        run: rsfusa tara --dir . || true
+        run: rsfusa tara --dir .
 
       - name: Cybersecurity analysis (CWE)
-        run: rsfusa cyber --dir . --format json --output cyber-report.json || true
+        run: rsfusa cyber --dir . --format json --output cyber-report.json
+
+      - name: Data coupling analysis (ISO 26262-6 §6.4.4)
+        run: rsfusa coupling --dir . --output coupling-report.json
 
       - name: Boundary diagram
-        run: rsfusa boundary --dir . || true
+        run: rsfusa boundary --dir .
 
       - name: HARA
-        run: rsfusa hara show --dir . || true
-
-      - name: Safety case assembly
-        run: rsfusa safety-case --dir . || true
-
-      - name: ISO 26262 Part 6 gap report
-        run: rsfusa iso26262 --dir . --format json --output iso26262-gap-report.json || true
+        run: rsfusa hara show --dir .
 
       - name: Tool qualification
-        run: rsfusa qualify
+        # Runs before safety-case/iso26262 below: both of those check for
+        # qualify-report.json's presence as required evidence, so it must
+        # already exist by the time they run.
+        run: |
+          rsfusa qualify --format json \
+            --qualification-method self \
+            --qualifier "SoundMatt / rust-LIN maintainers" \
+            --record-uri "https://github.com/SoundMatt/rust-LIN/blob/main/tool-qualification/rsfusa-tql2.md" \
+            --output qualify-report.json
+          badge=$(python3 -c "import json; print(json.load(open('qualify-report.json'))['qualificationBadge'])")
+          echo "Tool qualification badge: ${badge}"
+          if [ "$badge" = "unqualified" ]; then
+            echo "::error::rsfusa qualify badge is 'unqualified' — see qualify-report.json"
+            exit 1
+          fi
 
       - name: Release artifacts (SBOM, provenance, manifest)
+        # Also runs before safety-case/iso26262: both check for sbom.json.
         run: rsfusa release --dir .
 
+      - name: Safety case assembly
+        run: |
+          rsfusa safety-case --dir . | tee safety-case-stdout.txt
+          if grep -q "required evidence item(s) missing" safety-case-stdout.txt; then
+            echo "::error::safety-case reports missing required evidence — see safety-case-stdout.txt"
+            exit 1
+          fi
+
+      - name: ISO 26262 Part 6 gap report
+        run: rsfusa iso26262 --dir . --format json --output iso26262-gap-report.json
+
       - name: Audit pack
-        run: rsfusa audit-pack --output audit-pack.zip || true
+        run: rsfusa audit-pack --output audit-pack.zip
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always() && github.event_name != 'pull_request'
@@ -212,6 +258,7 @@ jobs:
             analyze-report.json
             comp-report.json
             cyber-report.json
+            coupling-report.json
             trace.json
             fmea.json
             tara.json

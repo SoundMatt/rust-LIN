@@ -200,7 +200,9 @@ mod tests {
     #[tokio::test]
     async fn records_published_responses() {
         let bus = MockBus::new();
-        bus.publish(0x10, Some(vec![0x01, 0x02])).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
         let published = bus.published_responses().await;
         assert_eq!(published.len(), 1);
         assert_eq!(published[0].0, 0x10);
@@ -219,8 +221,13 @@ mod tests {
     #[tokio::test]
     async fn send_header_returns_frame() {
         let bus = MockBus::new();
-        bus.publish(0x10, Some(vec![0x01, 0x02])).await.unwrap();
-        let frame = bus.send_header(Context::background(), 0x10).await.unwrap();
+        bus.publish(0x10, Some(vec![0x01, 0x02]))
+            .await
+            .expect("async operation must succeed in this test");
+        let frame = bus
+            .send_header(Context::background(), 0x10)
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(frame.id, 0x10);
         assert_eq!(frame.data, vec![0x01, 0x02]);
     }
@@ -231,28 +238,37 @@ mod tests {
         let rx = bus
             .subscribe(vec![], SubscriberOptions::default())
             .await
-            .unwrap();
+            .expect("value must be present in this test");
         bus.inject(Frame {
             id: 0x20,
             data: vec![0x03],
             ..Default::default()
         })
         .await;
-        let f = rx.recv().await.unwrap();
+        let f = rx
+            .recv()
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(f.id, 0x20);
     }
 
     #[tokio::test]
     async fn close_is_idempotent() {
         let bus = MockBus::new();
-        bus.close().await.unwrap();
-        bus.close().await.unwrap();
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test");
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test");
     }
 
     #[tokio::test]
     async fn send_after_close_returns_error() {
         let bus = MockBus::new();
-        bus.close().await.unwrap();
+        bus.close()
+            .await
+            .expect("async operation must succeed in this test");
         let err = bus.publish(0x10, Some(vec![0x01])).await.unwrap_err();
         assert!(matches!(err, Error::Closed));
     }
@@ -267,6 +283,8 @@ mod tests {
     #[tokio::test]
     async fn publish_accepts_max_data_len() {
         let bus = MockBus::new();
-        bus.publish(0x10, Some(vec![0u8; 8])).await.unwrap();
+        bus.publish(0x10, Some(vec![0u8; 8]))
+            .await
+            .expect("async operation must succeed in this test");
     }
 }

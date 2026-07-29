@@ -1,155 +1,436 @@
 {
-  "schema_version": "1.1",
-  "tool": "rsfusa",
   "project": "rust-LIN",
-  "standard": "ISO 26262-3:2018",
-  "asil": "ASIL-B",
-  "generated": "2026-06-19",
-  "method": "FMEA-informed hazard enumeration per ISO 26262-3 §6 / §7",
+  "standard": "iso26262",
+  "createdAt": "2026-06-19T00:00:00Z",
+  "operationalSituations": [
+    {
+      "id": "OS-01",
+      "description": "Vehicle in operation: master and slave nodes exchange LIN frames continuously over the bus"
+    },
+    {
+      "id": "OS-02",
+      "description": "Diagnostic session in progress: master request (0x3C) / slave response (0x3D) frame exchange"
+    },
+    {
+      "id": "OS-03",
+      "description": "System integration: LDF-derived schedule tables and node lists are loaded before runtime scheduling begins"
+    },
+    {
+      "id": "OS-04",
+      "description": "RELAY multi-protocol adapter routes relay::Message values between LIN and other bus protocols within the same process"
+    }
+  ],
   "hazards": [
     {
       "id": "H-01",
       "description": "Wrong PID delivered to LIN network due to parity bit computation error",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": [
+        "SG-01"
+      ],
       "consequence": "Slave nodes interpret wrong frame; incorrect actuator action",
-      "severity": "S2",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-LIN-001, REQ-LIN-002: protect_id verified by unit tests with golden vectors",
-      "fmea_refs": ["FMEA-001", "FMEA-002"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-001",
+        "FMEA-002"
+      ]
     },
     {
       "id": "H-02",
       "description": "Corrupted checksum accepted as valid frame",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": [
+        "SG-02"
+      ],
       "consequence": "Invalid data processed by safety function",
-      "severity": "S2",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-LIN-003 through REQ-LIN-006: checksum algorithm verified by unit tests",
-      "fmea_refs": ["FMEA-003", "FMEA-004"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-003",
+        "FMEA-004"
+      ]
     },
     {
       "id": "H-03",
       "description": "Diagnostic frame (0x3C/0x3D) with enhanced checksum accepted",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-02"
+      ],
+      "risk": {
+        "severity": "S1",
+        "exposure": "E2",
+        "controllability": "C2",
+        "asil": "QM"
+      },
+      "safetyGoals": [
+        "SG-03"
+      ],
       "consequence": "Incorrect diagnostic response; potential misconfiguration of slave node",
-      "severity": "S1",
-      "exposure": "E2",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-LIN-009: validate_frame enforces ClassicChecksum for diagnostic IDs",
-      "fmea_refs": ["FMEA-005"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-005"
+      ]
     },
     {
       "id": "H-04",
       "description": "Frame data longer than 8 bytes sent on bus",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S1",
+        "exposure": "E3",
+        "controllability": "C3",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": [
+        "SG-04"
+      ],
       "consequence": "Bus protocol violation; undefined slave node behaviour",
-      "severity": "S1",
-      "exposure": "E3",
-      "controllability": "C3",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-LIN-008: validate_frame rejects len > 8",
-      "fmea_refs": ["FMEA-007"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-007"
+      ]
     },
     {
       "id": "H-05",
       "description": "Frame ID > 0x3F sent on bus",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S1",
+        "exposure": "E3",
+        "controllability": "C3",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": [
+        "SG-05"
+      ],
       "consequence": "Undefined behaviour on LIN network; potential bus conflict",
-      "severity": "S1",
-      "exposure": "E3",
-      "controllability": "C3",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-LIN-007: validate_frame rejects id > 0x3F",
-      "fmea_refs": ["FMEA-006"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-006"
+      ]
     },
     {
       "id": "H-06",
       "description": "NoResponse not propagated to application caller",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": [
+        "SG-06"
+      ],
       "consequence": "Application assumes successful communication; stale state used",
-      "severity": "S2",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-LIN-014, REQ-LIN-021: NoResponse returned and maps to relay::Error::Timeout",
-      "fmea_refs": ["FMEA-008", "FMEA-009"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-008",
+        "FMEA-009"
+      ]
     },
     {
       "id": "H-07",
       "description": "E2E CRC computed incorrectly — corrupted payload accepted as intact",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": [
+        "SG-07"
+      ],
       "consequence": "Safety function processes corrupted data; incorrect actuator command issued",
-      "severity": "S2",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-SAFETY-005, REQ-SAFETY-008: CRC-16/CCITT-FALSE verified by golden-vector unit test; CrcMismatch returned on detection",
-      "fmea_refs": ["FMEA-011", "FMEA-012"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-011",
+        "FMEA-012"
+      ]
     },
     {
       "id": "H-08",
       "description": "E2E sequence counter replay — replayed old frame accepted by Receiver",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E2",
+        "controllability": "C2",
+        "asil": "QM"
+      },
+      "safetyGoals": [
+        "SG-08"
+      ],
       "consequence": "Stale data used by safety function; control output based on outdated sensor reading",
-      "severity": "S2",
-      "exposure": "E2",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-SAFETY-009: Receiver::unwrap returns SequenceGap when counter != last+1",
-      "fmea_refs": ["FMEA-013"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-013"
+      ]
     },
     {
       "id": "H-09",
       "description": "LDF parser produces invalid schedule entry with frame ID > 0x3F",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-03"
+      ],
+      "risk": {
+        "severity": "S1",
+        "exposure": "E2",
+        "controllability": "C3",
+        "asil": "QM"
+      },
+      "safetyGoals": [
+        "SG-09"
+      ],
       "consequence": "MasterNode sends header with illegal ID; bus protocol violation",
-      "severity": "S1",
-      "exposure": "E2",
-      "controllability": "C3",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-SEOOC-006: integrator must validate LDF-derived IDs before passing to MasterNode; MasterNode set_schedule enforces ID ≤ 0x3F (REQ-LIN-013)",
-      "fmea_refs": ["FMEA-020"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-020"
+      ]
     },
     {
       "id": "H-10",
       "description": "SlaveNode set_response overwrites concurrent frame exchange in progress",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S1",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "QM"
+      },
+      "safetyGoals": [
+        "SG-10"
+      ],
       "consequence": "Slave returns partially-updated data; corrupted frame broadcast to subscribers",
-      "severity": "S1",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-SLAVE-008: tokio::sync::Mutex serialises all publish/response operations; set_response atomically replaces entry",
-      "fmea_refs": ["FMEA-021", "FMEA-022"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-021",
+        "FMEA-022"
+      ]
     },
     {
       "id": "H-11",
       "description": "MasterNode schedule loop continues after context cancellation",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-01"
+      ],
+      "risk": {
+        "severity": "S1",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "QM"
+      },
+      "safetyGoals": [
+        "SG-11"
+      ],
       "consequence": "Master sends unexpected frames; slave nodes in invalid state",
-      "severity": "S1",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-MASTER-004: MasterNode::run checks ctx.done() at top of each loop iteration",
-      "fmea_refs": ["FMEA-025"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-025"
+      ]
     },
     {
       "id": "H-12",
       "description": "RELAY adapter from_message accepts message with wrong protocol, causing ID mis-mapping",
+      "source": "FMEA-informed hazard enumeration per ISO 26262-3 §6/§7 (2026-06-19), re-derived against Table 4 (2026-07-29)",
+      "situations": [
+        "OS-04"
+      ],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E2",
+        "controllability": "C2",
+        "asil": "QM"
+      },
+      "safetyGoals": [
+        "SG-12"
+      ],
       "consequence": "Frame intended for different protocol interpreted as LIN frame; wrong actuator addressed",
-      "severity": "S2",
-      "exposure": "E2",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "REQ-ADAPT-002, REQ-SEC-002: from_message validates protocol field == Protocol::Lin (3) before constructing Frame",
-      "fmea_refs": ["FMEA-028"],
-      "status": "mitigated"
+      "fmeaRefs": [
+        "FMEA-028"
+      ]
+    }
+  ],
+  "safetyGoals": [
+    {
+      "id": "SG-01",
+      "description": "The system shall prevent: wrong PID delivered to LIN network due to parity bit computation error",
+      "hazards": [
+        "H-01"
+      ],
+      "asil": "ASIL-A",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-LIN-001, REQ-LIN-002)",
+      "fssrRefs": [
+        "REQ-LIN-001",
+        "REQ-LIN-002"
+      ]
+    },
+    {
+      "id": "SG-02",
+      "description": "The system shall prevent: corrupted checksum accepted as valid frame",
+      "hazards": [
+        "H-02"
+      ],
+      "asil": "ASIL-A",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-LIN-003, REQ-LIN-004, REQ-LIN-005, REQ-LIN-006)",
+      "fssrRefs": [
+        "REQ-LIN-003",
+        "REQ-LIN-004",
+        "REQ-LIN-005",
+        "REQ-LIN-006"
+      ]
+    },
+    {
+      "id": "SG-03",
+      "description": "The system shall prevent: diagnostic frame (0x3C/0x3D) with enhanced checksum accepted",
+      "hazards": [
+        "H-03"
+      ],
+      "asil": "QM",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-LIN-009)",
+      "fssrRefs": [
+        "REQ-LIN-009"
+      ]
+    },
+    {
+      "id": "SG-04",
+      "description": "The system shall prevent: frame data longer than 8 bytes sent on bus",
+      "hazards": [
+        "H-04"
+      ],
+      "asil": "ASIL-A",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-LIN-008)",
+      "fssrRefs": [
+        "REQ-LIN-008"
+      ]
+    },
+    {
+      "id": "SG-05",
+      "description": "The system shall prevent: frame ID > 0x3F sent on bus",
+      "hazards": [
+        "H-05"
+      ],
+      "asil": "ASIL-A",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-LIN-007)",
+      "fssrRefs": [
+        "REQ-LIN-007"
+      ]
+    },
+    {
+      "id": "SG-06",
+      "description": "The system shall prevent: noResponse not propagated to application caller",
+      "hazards": [
+        "H-06"
+      ],
+      "asil": "ASIL-A",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-LIN-014, REQ-LIN-021)",
+      "fssrRefs": [
+        "REQ-LIN-014",
+        "REQ-LIN-021"
+      ]
+    },
+    {
+      "id": "SG-07",
+      "description": "The system shall prevent: e2E CRC computed incorrectly — corrupted payload accepted as intact",
+      "hazards": [
+        "H-07"
+      ],
+      "asil": "ASIL-A",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-SAFETY-005, REQ-SAFETY-008)",
+      "fssrRefs": [
+        "REQ-SAFETY-005",
+        "REQ-SAFETY-008"
+      ]
+    },
+    {
+      "id": "SG-08",
+      "description": "The system shall prevent: e2E sequence counter replay — replayed old frame accepted by Receiver",
+      "hazards": [
+        "H-08"
+      ],
+      "asil": "QM",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-SAFETY-009)",
+      "fssrRefs": [
+        "REQ-SAFETY-009"
+      ]
+    },
+    {
+      "id": "SG-09",
+      "description": "The system shall prevent: lDF parser produces invalid schedule entry with frame ID > 0x3F",
+      "hazards": [
+        "H-09"
+      ],
+      "asil": "QM",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-SEOOC-006)",
+      "fssrRefs": [
+        "REQ-SEOOC-006",
+        "REQ-LIN-013"
+      ]
+    },
+    {
+      "id": "SG-10",
+      "description": "The system shall prevent: slaveNode set_response overwrites concurrent frame exchange in progress",
+      "hazards": [
+        "H-10"
+      ],
+      "asil": "QM",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-SLAVE-008)",
+      "fssrRefs": [
+        "REQ-SLAVE-008"
+      ]
+    },
+    {
+      "id": "SG-11",
+      "description": "The system shall prevent: masterNode schedule loop continues after context cancellation",
+      "hazards": [
+        "H-11"
+      ],
+      "asil": "QM",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-MASTER-004)",
+      "fssrRefs": [
+        "REQ-MASTER-004"
+      ]
+    },
+    {
+      "id": "SG-12",
+      "description": "The system shall prevent: rELAY adapter from_message accepts message with wrong protocol, causing ID mis-mapping",
+      "hazards": [
+        "H-12"
+      ],
+      "asil": "QM",
+      "safeState": "the frame/payload is rejected or the fault is detected before it reaches the safety function (REQ-ADAPT-002, REQ-SEC-002)",
+      "fssrRefs": [
+        "REQ-ADAPT-002",
+        "REQ-SEC-002"
+      ]
     }
   ]
 }

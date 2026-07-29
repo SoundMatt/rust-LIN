@@ -1,0 +1,53 @@
+name: Release assets
+
+# Attaches supply-chain evidence (SBOM, provenance, artifact manifest) to a
+# published GitHub Release so downstream consumers can fetch and verify them
+# alongside the exact release they describe, instead of only inside an
+# ephemeral CI workflow-run artifact bundle. See #17.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  attach-evidence:
+    name: Attach SBOM / provenance / manifest to release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ubuntu-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install rsfusa
+        run: cargo install --git https://github.com/SoundMatt/rust-FuSa --tag v0.3.14 rsfusa --locked
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Generate SBOM, provenance, and artifact manifest for this tag
+        run: rsfusa release --dir .
+
+      - name: Attach evidence to the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            sbom.json provenance.json artifact-manifest.json \
+            --repo "${{ github.repository }}" \
+            --clobber

@@ -62,7 +62,10 @@ impl SubInner {
     //fusa:req REQ-SEC-007
     pub(crate) fn push(&self, frame: Frame) -> bool {
         if self.rate_limit > 0 {
-            let mut rs = self.rate_state.lock().unwrap();
+            let mut rs = self
+                .rate_state
+                .lock()
+                .expect("rate_state mutex poisoned by a prior panic");
             let now = Instant::now();
             if now.duration_since(rs.window_start).as_secs() >= 1 {
                 rs.window_start = now;
@@ -74,7 +77,10 @@ impl SubInner {
             rs.count += 1;
         }
 
-        let mut q = self.queue.lock().unwrap();
+        let mut q = self
+            .queue
+            .lock()
+            .expect("queue mutex poisoned by a prior panic");
         match self.policy {
             BackPressurePolicy::DropNewest => {
                 if q.len() >= self.capacity {
@@ -101,12 +107,18 @@ impl SubInner {
     }
 
     pub(crate) fn pop(&self) -> Option<Frame> {
-        self.queue.lock().unwrap().pop_front()
+        self.queue
+            .lock()
+            .expect("queue mutex poisoned by a prior panic")
+            .pop_front()
     }
 
     #[allow(dead_code)]
     pub(crate) fn is_empty(&self) -> bool {
-        self.queue.lock().unwrap().is_empty()
+        self.queue
+            .lock()
+            .expect("queue mutex poisoned by a prior panic")
+            .is_empty()
     }
 
     pub(crate) fn close(&self) {
@@ -246,7 +258,7 @@ mod tests {
             ..Default::default()
         };
         assert!(inner.push(f));
-        let got = inner.pop().unwrap();
+        let got = inner.pop().expect("pop must succeed in this test");
         assert_eq!(got.id, 0x10);
     }
 
@@ -271,8 +283,8 @@ mod tests {
         assert!(inner.push(f1));
         assert!(inner.push(f2));
         assert!(!inner.push(f3)); // full — drop newest
-        assert_eq!(inner.pop().unwrap().id, 1);
-        assert_eq!(inner.pop().unwrap().id, 2);
+        assert_eq!(inner.pop().expect("pop must succeed in this test").id, 1);
+        assert_eq!(inner.pop().expect("pop must succeed in this test").id, 2);
         assert!(inner.pop().is_none());
     }
 
@@ -289,7 +301,10 @@ mod tests {
         };
         inner.push(f);
         inner.close();
-        let got = rx.recv().await.unwrap();
+        let got = rx
+            .recv()
+            .await
+            .expect("async operation must succeed in this test");
         assert_eq!(got.id, 0x20);
         assert!(rx.recv().await.is_none());
     }

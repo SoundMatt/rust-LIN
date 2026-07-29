@@ -164,28 +164,12 @@ impl crate::relay::Node for LinAdapter {
 
         tokio::spawn(async move {
             loop {
-                match frame_rx.recv().await {
-                    None => break,
-                    Some(f) => {
-                        let mut msg = to_message(&f);
-                        msg.timestamp = Utc::now();
-                        msg.seq = seq;
-                        seq += 1;
-
-                        match policy {
-                            BackPressurePolicy::DropNewest => {
-                                let _ = tx.try_send(msg);
-                            }
-                            BackPressurePolicy::DropOldest => {
-                                let _ = tx.try_send(msg);
-                            }
-                            BackPressurePolicy::Block => {
-                                if tx.send(msg).await.is_err() {
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                let Some(f) = frame_rx.recv().await else {
+                    break;
+                };
+                let msg = build_forward_message(&f, &mut seq);
+                if !forward_message(&tx, policy, msg).await {
+                    break;
                 }
             }
         });
@@ -198,6 +182,33 @@ impl crate::relay::Node for LinAdapter {
             .close()
             .await
             .map_err(|_| crate::relay::Error::Closed)
+    }
+}
+
+/// Build the outgoing relay::Message for a received frame, stamping the
+/// timestamp and monotonically-increasing sequence number.
+fn build_forward_message(f: &Frame, seq: &mut u64) -> Message {
+    let mut msg = to_message(f);
+    msg.timestamp = Utc::now();
+    msg.seq = *seq;
+    *seq += 1;
+    msg
+}
+
+/// Send `msg` on `tx` per the subscriber's back-pressure policy.
+/// Returns `false` when the receiver has gone away and the forwarding loop
+/// should stop.
+async fn forward_message(
+    tx: &mpsc::Sender<Message>,
+    policy: BackPressurePolicy,
+    msg: Message,
+) -> bool {
+    match policy {
+        BackPressurePolicy::DropNewest | BackPressurePolicy::DropOldest => {
+            let _ = tx.try_send(msg);
+            true
+        }
+        BackPressurePolicy::Block => tx.send(msg).await.is_ok(),
     }
 }
 
@@ -222,11 +233,21 @@ mod tests {
         };
         let msg = to_message(&f);
         assert_eq!(msg.id, "16");
-        assert_eq!(msg.meta.get("lin.checksum_type").unwrap(), "enhanced");
-        assert_eq!(msg.meta.get("lin.checksum").unwrap(), "190");
+        assert_eq!(
+            msg.meta
+                .get("lin.checksum_type")
+                .expect("get must succeed in this test"),
+            "enhanced"
+        );
+        assert_eq!(
+            msg.meta
+                .get("lin.checksum")
+                .expect("get must succeed in this test"),
+            "190"
+        );
         assert_eq!(msg.payload, vec![0xAA, 0x55]);
 
-        let f2 = from_message(&msg).unwrap();
+        let f2 = from_message(&msg).expect("from_message must succeed in this test");
         assert_eq!(f2.id, f.id);
         assert_eq!(f2.checksum_type, f.checksum_type);
         assert_eq!(f2.checksum, f.checksum);
@@ -242,8 +263,13 @@ mod tests {
             checksum_type: ChecksumType::Classic,
         };
         let msg = to_message(&f);
-        assert_eq!(msg.meta.get("lin.checksum_type").unwrap(), "classic");
-        let f2 = from_message(&msg).unwrap();
+        assert_eq!(
+            msg.meta
+                .get("lin.checksum_type")
+                .expect("get must succeed in this test"),
+            "classic"
+        );
+        let f2 = from_message(&msg).expect("from_message must succeed in this test");
         assert_eq!(f2.checksum_type, ChecksumType::Classic);
     }
 
@@ -292,7 +318,9 @@ mod tests {
             .insert("lin.checksum_type".into(), "enhanced".into());
         msg.meta.insert("lin.checksum".into(), "0".into());
 
-        node.send(Context::background(), msg).await.unwrap();
+        node.send(Context::background(), msg)
+            .await
+            .expect("async operation must succeed in this test");
 
         let published = mock.published_responses().await;
         assert_eq!(published.len(), 1);

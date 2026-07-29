@@ -86,7 +86,7 @@ enum Commands {
     },
 }
 
-#[derive(Clone, ValueEnum)]
+#[derive(Clone, Copy, ValueEnum)]
 enum OutputFormat {
     Text,
     Json,
@@ -324,41 +324,48 @@ async fn cmd_subscribe(
             break;
         }
 
-        match rx.recv().await {
-            None => break,
-            Some(frame) => {
-                received += 1;
-                let msg = rust_lin::to_message(&frame);
-
-                match format {
-                    OutputFormat::Json => {
-                        let doc = json!({
-                            "protocol": "LIN",
-                            "id":       msg.id,
-                            "data":     hex::encode(&frame.data),
-                            "checksum": frame.checksum,
-                            "checksum_type": frame.checksum_type.to_string(),
-                            "seq":      received,
-                        });
-                        println!("{}", serde_json::to_string(&doc)?);
-                    }
-                    OutputFormat::Text => {
-                        println!(
-                            "[{}] id=0x{:02X} checksum=0x{:02X} ct={} data={}",
-                            received,
-                            frame.id,
-                            frame.checksum,
-                            frame.checksum_type,
-                            hex::encode(&frame.data)
-                        );
-                    }
-                }
-            }
-        }
+        let Some(frame) = rx.recv().await else {
+            break;
+        };
+        received += 1;
+        print_subscribed_frame(&frame, received, format)?;
     }
 
     bus.close().await?;
     Ok(0)
+}
+
+/// Render a single frame received by `cmd_subscribe` in the requested format.
+fn print_subscribed_frame(
+    frame: &Frame,
+    seq: usize,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match format {
+        OutputFormat::Json => {
+            let msg = rust_lin::to_message(frame);
+            let doc = json!({
+                "protocol": "LIN",
+                "id":       msg.id,
+                "data":     hex::encode(&frame.data),
+                "checksum": frame.checksum,
+                "checksum_type": frame.checksum_type.to_string(),
+                "seq":      seq,
+            });
+            println!("{}", serde_json::to_string(&doc)?);
+        }
+        OutputFormat::Text => {
+            println!(
+                "[{}] id=0x{:02X} checksum=0x{:02X} ct={} data={}",
+                seq,
+                frame.id,
+                frame.checksum,
+                frame.checksum_type,
+                hex::encode(&frame.data)
+            );
+        }
+    }
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
