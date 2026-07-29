@@ -1,12 +1,12 @@
 # Roadmap — rust-LIN
 
-## v0.1.0 (current)
+## v0.1.0 (shipped)
 
 - Core `Bus` / `MasterBus` async traits.
 - `VirtualBus` in-process implementation.
 - `MockBus` test double with frame injection.
 - `MasterNode` schedule table executor.
-- RELAY v1.11 adapter (`adapt`, `to_message`, `from_message`).
+- RELAY v1.10 adapter (`adapt`, `to_message`, `from_message`).
 - LIN 2.x PID computation and checksum (classic and enhanced).
 - Frame validation (ID, length, diagnostic checksum enforcement).
 - ASIL-B FuSa annotations on all exported functions and tests.
@@ -18,20 +18,53 @@
 
 ---
 
-## v0.2.0 (planned)
+## v0.2.0 (shipped)
+
+Full feature parity with go-LIN — four new modules:
+
+- `rust_lin::ldf` — LIN Description File 2.x parser.
+- `rust_lin::safety` — ISO 26262 ASIL-B E2E protection (CRC-16/CCITT-FALSE).
+- `rust_lin::slave` — `SlaveNode`, responds to master headers with per-ID
+  response management.
+- `rust_lin::seooc` — ISO 26262 SEOOC assumption declarations.
+
+94 requirements (up from 41); 140 tests (100 unit + 38 integration + 2 doc).
+
+---
+
+## v0.3.0 (shipped)
+
+Full safety, security, and certification artefact pack (no breaking API
+changes): HARA grown to 12 hazards, FMEA to 30 entries, TARA to 12 scenarios,
+safety case to 16 sub-claims; IEC 62443 SL-1 → SL-2. New documents:
+`SAFETY_MANUAL.md`, `BOUNDARY_DIAGRAM.md`, `DO178C_ALIGNMENT.md`.
+
+---
+
+## v0.4.0 (shipped)
+
+RELAY spec target upgraded from v1.10 to v1.11 (adapter, CLI smoke tests, and
+all safety artefacts updated to match; no breaking API changes).
+
+---
+
+## v0.4.1 (shipped)
+
+- Fixed `relay::Node::send()` / `Bus::publish()` not enforcing
+  `LIN_MAX_DATA_LEN`.
+- Fixed `Cargo.toml` version drift (was stale at `0.1.0`).
+- Documented the `ldf`/`safety`/`slave` modules in the README module table.
+
+---
+
+## Planned (not yet scheduled to a specific version)
 
 - Serial port / UART transport (`SerialBus`): drive a real LIN transceiver via
   `tokio-serial`.
 - Break detection and synchronisation (hardware-assisted via `serialport` BREAK
   signal).
-- Slave node implementation (`SlaveNode`) — responds to master headers.
 - Configurable schedule table reloading without bus restart.
 - Rate-limiting improvements: per-subscriber token-bucket.
-
----
-
-## v0.3.0 (planned)
-
 - LIN diagnostics: master request / slave response frames (0x3C / 0x3D)
   high-level API.
 - Node configuration (NCI) and node position detection (NPD) helpers.
