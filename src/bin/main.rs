@@ -380,14 +380,14 @@ fn cmd_convert(protocol: String, _format: OutputFormat) -> Result<i32, Box<dyn s
         Ok(f) => f,
         Err(e) => {
             eprintln!("{}", e);
-            eprintln!("INVALID_ARGUMENT");
+            eprintln!("ErrInvalidFrame");
             return Ok(1);
         }
     };
 
     if let Err(e) = rust_lin::validate_frame(&frame) {
         eprintln!("{}", e);
-        eprintln!("INVALID_ARGUMENT");
+        eprintln!("ErrInvalidFrame");
         return Ok(1);
     }
 

@@ -3,7 +3,7 @@
 ## Overview
 
 rust-LIN is an ASIL-B Rust library for LIN bus communication. It implements
-the RELAY v1.11 protocol adapter contract for LIN (Protocol::Lin = 3).
+the RELAY v2.0 protocol adapter contract for LIN (Protocol::Lin = 3).
 The library is a Safety Element Out Of Context (SEOOC) per ISO 26262-10:2018 §9.
 
 ```
@@ -48,7 +48,7 @@ Public surface. Re-exports all stable types and the `RELAY_SPEC_VERSION`
 constant. Declares module tree.
 
 ### `src/relay.rs`
-RELAY v1.11 primitives: `Protocol`, `Version`, `Message`, `Context`,
+RELAY v2.0 primitives: `Protocol`, `Version`, `Message`, `Context`,
 `BackPressurePolicy`, `SubscriberOptions`, `Health`, `Metrics`, `Node`,
 `Caller`. Protocol::Lin = 3.
 
@@ -240,7 +240,7 @@ rust-LIN targets ASIL-B (ISO 26262 Part 6) as a SEOOC component. Safety measures
 - **30 FMEA entries** (`fmea.json`), highest RPN = 36.
 - **12 TARA scenarios** (`tara.json`), one residual risk accepted (TARA-006).
 - **IEC 62443-4-1 SL-2** compliance (`.fusa-iec62443.json`).
-- **148 tests**: 100 unit + 46 integration + 2 doc, all passing.
+- **155 tests**: 107 unit + 46 integration + 2 doc, all passing.
 
 ---
 

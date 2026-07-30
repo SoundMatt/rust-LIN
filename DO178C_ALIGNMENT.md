@@ -1,4 +1,4 @@
-# DO-178C / ED-12C Alignment — rust-LIN v0.2.0
+# DO-178C / ED-12C Alignment — rust-LIN v0.4.2
 
 **Reference standard:** DO-178C / ED-12C (Software Considerations in Airborne Systems)
 **Applicable level:** DAL-C (equivalent to ASIL-B for cross-standard mapping)
@@ -46,7 +46,7 @@ Table A-7 and maps it to the rust-LIN artefact that satisfies it.
 
 | Obj | Description | rust-LIN evidence |
 |---|---|---|
-| A2-1 | High-level requirements developed | `requirements.json` (94 requirements), `SAFETY_PLAN.md §4` |
+| A2-1 | High-level requirements developed | `requirements.json` (99 requirements), `SAFETY_PLAN.md §4` |
 | A2-2 | Derived high-level requirements identified | All REQ-NNN with `"source": "internal"` |
 | A2-3 | Software architecture developed | `ARCHITECTURE.md`, `BOUNDARY_DIAGRAM.md` |
 | A2-4 | Low-level requirements (source code) developed | All `src/` modules with `//fusa:req` annotations |
@@ -67,7 +67,7 @@ Table A-7 and maps it to the rust-LIN artefact that satisfies it.
 
 | Obj | Description | rust-LIN evidence |
 |---|---|---|
-| A4-1 | Executable code is correct | `cargo test --locked` (140 tests, all passing) |
+| A4-1 | Executable code is correct | `cargo test --locked` (155 tests, all passing) |
 | A4-2 | Executable code is robust | Integration tests cover error/edge paths |
 | A4-3 | Test coverage — statement | `cargo-llvm-cov` in CI (future); currently 100% req coverage |
 | A4-4 | Test coverage — decision | `rsfusa comp` verifies V(G) ≤ 10; MC/DC not required at DAL-C |
@@ -106,7 +106,7 @@ Table A-7 and maps it to the rust-LIN artefact that satisfies it.
 DO-178C requires Modified Condition/Decision Coverage (MC/DC) at DAL-A and DAL-B.
 At DAL-C (ASIL-B equivalent), **decision coverage** is required. rust-LIN provides:
 
-- Statement and branch coverage via `cargo test` (100 tests cover all branches in
+- Statement and branch coverage via `cargo test` (155 tests cover all branches in
   the safety-critical `calc_checksum`, `protect_id`, `validate_frame` functions).
 - Cyclomatic complexity V(G) ≤ 10 per function (enforced by `rsfusa comp --strict`).
 - MC/DC is **not required** at DAL-C but can be measured with `cargo-llvm-cov` if

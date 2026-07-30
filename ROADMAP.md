@@ -6,7 +6,7 @@
 - `VirtualBus` in-process implementation.
 - `MockBus` test double with frame injection.
 - `MasterNode` schedule table executor.
-- RELAY v1.11 adapter (`adapt`, `to_message`, `from_message`).
+- RELAY v2.0 adapter (`adapt`, `to_message`, `from_message`).
 - LIN 2.x PID computation and checksum (classic and enhanced).
 - Frame validation (ID, length, diagnostic checksum enforcement).
 - ASIL-B FuSa annotations on all exported functions and tests.
@@ -96,7 +96,7 @@ testing, the same role `vcan`+`can-utils` plays for CAN and CycloneDDS plays
 for DDS. The two are separable; only the first is being scoped as real work
 below.
 
-### What exists today (rust-LIN v0.4.1)
+### What exists today (rust-LIN v0.4.2)
 
 Confirmed directly against the current `main` branch (an earlier
 ecosystem-audit note is superseded by this read — the LDF parser and E2E
