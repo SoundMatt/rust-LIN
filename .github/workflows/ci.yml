@@ -251,7 +251,7 @@ jobs:
         run: cargo build --release --bin rust-lin --locked
 
       - name: Install relay
-        run: go install github.com/SoundMatt/RELAY/cmd/relay@v1.11.0
+        run: go install github.com/SoundMatt/RELAY/v2/cmd/relay@v2.0.4
 
       - name: RELAY conformance (strict)
         run: relay conform --strict ./target/release/rust-lin
