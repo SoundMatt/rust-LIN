@@ -1,4 +1,4 @@
-# Safety Manual — rust-LIN v0.2.0
+# Safety Manual — rust-LIN v0.4.2
 
 **Standard:** ISO 26262-10:2018 (SEOOC) / ISO 26262-6:2018
 **ASIL:** ASIL-B
@@ -275,6 +275,8 @@ master.set_schedule(entries).await?;
 |---|---|---|
 | 0.1.0 | 2026-06-19 | Initial release: core LIN frame, VirtualBus, MasterNode, RELAY adapter |
 | 0.2.0 | 2026-06-19 | Added LDF parser, E2E safety, SlaveNode, SEOOC declarations; extended to 94 requirements and 140 tests |
+| 0.4.1 | 2026-07-27 | 99 requirements, 155 tests (107 unit + 46 integration + 2 doc) |
+| 0.4.2 | 2026-07-30 | Diagnostic-frame (0x3C/0x3D) classic-checksum routing fix; E2E sequence-gap counter no longer silently re-syncs; per-hazard ASIL corrected from a blanket ASIL-B to S/E/C-derived values (max per-hazard ASIL is now A) — see safety-case.md for the resulting SEOOC classification follow-up; 156 tests (108 unit + 46 integration + 2 doc) |
 
 ---
 

@@ -224,7 +224,9 @@ impl Receiver {
         let mut inner = self.inner.lock().unwrap();
         if !inner.first && seq != inner.last_seq.wrapping_add(1) {
             let prev = inner.last_seq;
-            inner.last_seq = seq;
+            // Do NOT advance last_seq on a gap: every out-of-order frame in a
+            // burst must be reported, and the receiver must not silently
+            // re-sync to a bad counter (rust-LIN-09).
             return Err(E2eError {
                 kind: ErrorKind::SequenceGap,
                 counter: seq,

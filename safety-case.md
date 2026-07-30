@@ -1,4 +1,4 @@
-# Safety Case — rust-LIN v0.2.0
+# Safety Case — rust-LIN v0.4.2
 
 **Standard:** ISO 26262-6:2018 / ISO 26262-10:2018 (SEOOC)
 **ASIL:** ASIL-B
@@ -9,10 +9,27 @@
 
 ## Top-level claim
 
-> rust-LIN v0.2.0 is acceptably safe for use as an ASIL-B SEOOC software
+> rust-LIN v0.4.2 is acceptably safe for use as an ASIL-B SEOOC software
 > component implementing LIN bus communication, LIN Description File parsing,
 > end-to-end safety protection, and master/slave node management, in
 > accordance with ISO 26262-6:2018 and ISO 26262-10:2018.
+
+> **Open safety-case item (2026-07-30):** `.fusa-hara.json` previously
+> assigned a blanket `ASIL-B` to all twelve hazards without deriving it from
+> each hazard's own S/E/C rating. Correcting each hazard's ASIL per
+> ISO 26262-3:2018 Table 4 (see `.fusa-hara.json` v0.4.2) yields a maximum
+> per-hazard ASIL of **A** (several hazards compute to QM). Per
+> ISO 26262-3:2018 6.4.4.2, the ASIL assigned to a safety goal is the
+> highest ASIL among the hazardous events it covers — on the corrected HARA
+> that is ASIL-A, not ASIL-B. This top-level claim, the `**ASIL:** ASIL-B`
+> header above, and the matching ASIL-B claims in `SAFETY_PLAN.md`,
+> `SAFETY_MANUAL.md`, `BOUNDARY_DIAGRAM.md`, and `DO178C_ALIGNMENT.md`
+> have **not** been changed to match, because doing so is a safety-case
+> classification decision (either genuinely downgrade the SEOOC claim to
+> ASIL-A, or re-justify higher S/E/C values for specific hazards) that
+> requires a safety engineer's review, not a mechanical documentation
+> edit. Tracked for follow-up; do not treat this file's ASIL-B claim as
+> re-verified until that review closes.
 
 ---
 
@@ -224,4 +241,4 @@ Integrators targeting ASIL-C or ASIL-D must perform ASIL decomposition.
 
 **Author:** Matt Jones <matt@jellybaby.com>
 **Date:** 2026-06-19
-**Version:** 0.2.0
+**Version:** 0.4.2

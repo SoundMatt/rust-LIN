@@ -25,7 +25,7 @@ use crate::bus::{Bus, FrameReceiver, HealthProvider, MasterBus, MetricsProvider,
 use crate::error::Error;
 use crate::frame::{
     calc_checksum, protect_id, validate_frame, ChecksumType, Filter, Frame, ScheduleEntry,
-    LIN_MAX_DATA_LEN, LIN_MAX_ID,
+    LIN_DIAG_REQUEST_ID, LIN_DIAG_RESPONSE_ID, LIN_MAX_DATA_LEN, LIN_MAX_ID,
 };
 use crate::relay::{Context, Health, Metrics, SubscriberOptions};
 
@@ -154,6 +154,15 @@ impl VirtualBus {
         data: Option<Vec<u8>>,
         ct: ChecksumType,
     ) -> Result<(), Error> {
+        // Diagnostic frames (0x3C/0x3D) MUST use classic checksum per
+        // ISO 17987 / RELAY §15.3, regardless of the requested type. This
+        // keeps the trait `publish` path (which defaults to Enhanced) usable
+        // for LIN diagnostics instead of failing later in validate_frame.
+        let ct = if id == LIN_DIAG_REQUEST_ID || id == LIN_DIAG_RESPONSE_ID {
+            ChecksumType::Classic
+        } else {
+            ct
+        };
         if self.closed.load(Ordering::SeqCst) {
             self.error_count.fetch_add(1, Ordering::Relaxed);
             return Err(Error::Closed);
@@ -647,6 +656,39 @@ mod tests {
         // Stored response must still have original
         let frame = bus.send_header(Context::background(), 0x10).await.unwrap();
         assert_eq!(frame.data[0], 0x01);
+    }
+
+    //fusa:test REQ-VIRT-002
+    #[tokio::test]
+    async fn diagnostic_frame_round_trip_uses_classic_checksum() {
+        // rust-LIN-01: driving a 0x3C diagnostic frame through the trait
+        // `publish` (defaults to Enhanced) must succeed end-to-end, with the
+        // checksum auto-selected to Classic per ISO 17987 / RELAY §15.3.
+        let bus = VirtualBus::new();
+        let rx = bus
+            .subscribe(
+                vec![Filter { id: 0, all: true }],
+                SubscriberOptions::default(),
+            )
+            .await
+            .unwrap();
+
+        bus.publish(LIN_DIAG_REQUEST_ID, Some(vec![0x01, 0x02, 0x03]))
+            .await
+            .unwrap();
+        let frame = bus
+            .send_header(Context::background(), LIN_DIAG_REQUEST_ID)
+            .await
+            .unwrap();
+
+        assert_eq!(frame.id, LIN_DIAG_REQUEST_ID);
+        assert_eq!(frame.checksum_type, ChecksumType::Classic);
+        let pid = protect_id(LIN_DIAG_REQUEST_ID);
+        let expected_cs = calc_checksum(pid, &[0x01, 0x02, 0x03], ChecksumType::Classic);
+        assert_eq!(frame.checksum, expected_cs);
+
+        let recv = rx.recv().await.unwrap();
+        assert_eq!(recv.id, LIN_DIAG_REQUEST_ID);
     }
 
     #[tokio::test]

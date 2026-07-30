@@ -1,7 +1,7 @@
 # Safety Plan — rust-LIN
 
 **ASIL-B — ISO 26262 Part 6 — Software Unit Design and Implementation**
-**Version:** 0.2.0
+**Version:** 0.4.2
 **Date:** 2026-06-19
 **Author:** Matt Jones
 
@@ -10,7 +10,7 @@
 ## 1. Scope and objectives
 
 This safety plan covers the rust-LIN software library (`rust_lin` crate,
-version 0.2.0) and its CLI binary (`rust-lin`). The library implements:
+version 0.4.2) and its CLI binary (`rust-lin`). The library implements:
 
 - LIN bus traits (`Bus`, `MasterBus`) — `src/bus.rs`
 - LIN 2.x frame encoding/decoding (PID, classic and enhanced checksum) — `src/frame.rs`
@@ -203,4 +203,4 @@ release and re-reviewed for any subsequent release that adds scope.
 
 **Author:** Matt Jones <matt@jellybaby.com>
 **Date:** 2026-06-19
-**Version:** 0.2.0
+**Version:** 0.4.2

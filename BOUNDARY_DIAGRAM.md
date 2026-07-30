@@ -1,4 +1,4 @@
-# System Boundary Diagram — rust-LIN v0.2.0
+# System Boundary Diagram — rust-LIN v0.4.2
 
 **Standard:** ISO 26262-10:2018 §9 (SEOOC)
 **ASIL:** ASIL-B
@@ -18,7 +18,7 @@
 ║  └────────────────────────┬────────────────────────────────────────┘ ║
 ║                           │ Rust API                                  ║
 ║  ┌────────────────────────▼────────────────────────────────────────┐ ║
-║  │              rust-LIN v0.2.0  [ASIL-B SEOOC]                    │ ║
+║  │              rust-LIN v0.4.2  [ASIL-B SEOOC]                    │ ║
 ║  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │ ║
 ║  │  │ frame.rs │ │ safety/  │ │  ldf/    │ │  adapt.rs        │   │ ║
 ║  │  │ (PID,CS) │ │(CRC-16)  │ │ (parser) │ │  (RELAY bridge)  │   │ ║

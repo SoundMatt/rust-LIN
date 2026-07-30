@@ -7,7 +7,7 @@ The `Bus` and `MasterBus` traits are stable. Implementations are swappable witho
 
 [![CI](https://github.com/SoundMatt/rust-LIN/actions/workflows/ci.yml/badge.svg)](https://github.com/SoundMatt/rust-LIN/actions/workflows/ci.yml)
 
-**RELAY spec:** v1.11 · **Safety:** ASIL-B (ISO 26262) · **Language:** Rust 2021
+**RELAY spec:** v2.0 · **Safety:** ASIL-B (ISO 26262) · **Language:** Rust 2021
 
 ---
 
@@ -22,7 +22,7 @@ The `Bus` and `MasterBus` traits are stable. Implementations are swappable witho
 | `slave` | `SlaveNode` — registers/removes slave response registrations | All |
 | `ldf` | LIN Description File (LDF) parser — nodes, frames, signals, schedule tables | All |
 | `safety` | ISO 26262 ASIL-B end-to-end (E2E) data protection — `Protector`/`Receiver` | All |
-| `adapt` | RELAY v1.11 adapter — `adapt()`, `to_message()`, `from_message()` | All |
+| `adapt` | RELAY v2.0 adapter — `adapt()`, `to_message()`, `from_message()` | All |
 
 ---
 
@@ -114,6 +114,12 @@ rust-lin send --id 0x10 --data 01020304
 rust-lin subscribe --count 10
 rust-lin convert --protocol LIN
 ```
+
+> **Note:** `send` and `subscribe` each construct their own in-process
+> `VirtualBus`. They cannot communicate across two separate CLI processes
+> (there is no shared transport/IPC). Use them from a single process via the
+> library API, or back them with a real shared transport, if you need a
+> `send` → `subscribe` round-trip.
 
 ---
 
