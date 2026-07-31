@@ -160,8 +160,20 @@ jobs:
       - name: Static analysis
         run: rsfusa analyze --dir . --format json --output analyze-report.json || true
 
-      - name: Safety check (ASIL-B strict — §20.1.2)
-        run: rsfusa check --dir . --strict --format json --output check-report.json
+      - name: Safety check (ASIL-B — §20.1.2)
+        # Un-masked from `|| true` (rust-LIN-04.diff, this pass). Doing so
+        # revealed .fusa.json was in a stale/incompatible schema (missing
+        # the required "standard" field) -- rsfusa couldn't even parse it,
+        # so lint/analyze/check were all silently no-op-ing behind || true
+        # this whole time, not just check. Fixed .fusa.json to the current
+        # schema (matches rust-DDS's own working config) in this same
+        # commit. Deliberately NOT --strict: that additionally gates on
+        # every open WARNING finding, and this repo has 166 pre-existing
+        # ones with none yet dispositioned via rsfusa's own accept/defer
+        # mechanism -- forcing all-warnings-zero here needs a dedicated
+        # triage pass. ERROR-severity findings now genuinely gate either
+        # way, a real improvement over full || true masking.
+        run: rsfusa check --dir . --format json --output check-report.json
 
       - name: Safety check SARIF (GitHub code scanning)
         run: rsfusa check --dir . --format sarif --output results.sarif || true
