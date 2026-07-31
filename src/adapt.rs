@@ -16,7 +16,7 @@ use tokio::sync::mpsc;
 use crate::bus::Bus;
 use crate::error::Error;
 use crate::frame::{ChecksumType, Frame, LIN_MAX_DATA_LEN, LIN_MAX_ID};
-use crate::relay::{BackPressurePolicy, Context, Message, Protocol, SubscriberOptions};
+use crate::relay::{Context, Message, Protocol, SubscriberOptions};
 
 // ---------------------------------------------------------------------------
 // to_message / from_message
@@ -144,22 +144,26 @@ impl crate::relay::Node for LinAdapter {
         opts: SubscriberOptions,
     ) -> Result<mpsc::Receiver<Message>, crate::relay::Error> {
         let depth = opts.chan_depth(64);
-        let policy = opts.back_pressure;
 
+        // Delegate back-pressure to the bus `SubInner`, which implements
+        // DropNewest / DropOldest / Block correctly (RELAY §14). The mpsc
+        // channel below is drained with a blocking `send`, so it never
+        // silently drops a message — the policy applied upstream is the
+        // effective one, matching the reference semantics in §14 step 3.
         let frame_rx = self
             .bus
             .subscribe(
                 vec![],
                 SubscriberOptions {
-                    channel_depth: depth * 2,
-                    back_pressure: BackPressurePolicy::DropNewest,
-                    rate_limit_per_sec: 0,
+                    channel_depth: depth,
+                    back_pressure: opts.back_pressure,
+                    rate_limit_per_sec: opts.rate_limit_per_sec,
                 },
             )
             .await
             .map_err(|_| crate::relay::Error::Closed)?;
 
-        let (tx, rx) = mpsc::channel::<Message>(depth);
+        let (tx, rx) = mpsc::channel::<Message>(depth.max(1));
         let mut seq: u64 = 0;
 
         tokio::spawn(async move {
@@ -172,18 +176,8 @@ impl crate::relay::Node for LinAdapter {
                         msg.seq = seq;
                         seq += 1;
 
-                        match policy {
-                            BackPressurePolicy::DropNewest => {
-                                let _ = tx.try_send(msg);
-                            }
-                            BackPressurePolicy::DropOldest => {
-                                let _ = tx.try_send(msg);
-                            }
-                            BackPressurePolicy::Block => {
-                                if tx.send(msg).await.is_err() {
-                                    break;
-                                }
-                            }
+                        if tx.send(msg).await.is_err() {
+                            break;
                         }
                     }
                 }
@@ -340,5 +334,138 @@ mod tests {
         let mock = Arc::new(MockBus::new());
         let err = mock.publish(0x10, Some(vec![0u8; 9])).await.unwrap_err();
         assert!(matches!(err, Error::PayloadTooLarge));
+    }
+
+    // ---------------------------------------------------------------------
+    // rust-LIN-01 regression: DropOldest must actually evict the oldest
+    // buffered frame and differ operationally from DropNewest (RELAY spec
+    // §14 step 3). The adapter must delegate the caller's real
+    // back_pressure/channel_depth/rate_limit_per_sec to the bus subscription
+    // rather than silently hard-coding DropNewest, and must not re-apply a
+    // second, policy-less drop layer (`try_send`) on top of it.
+    // ---------------------------------------------------------------------
+
+    /// A `Bus` test double whose `subscribe()` pushes a fixed sequence of
+    /// frames directly into a real `SubInner` (honoring whichever
+    /// `SubscriberOptions` the caller — i.e. the adapter under test —
+    /// actually passes) before returning. Because this all happens
+    /// synchronously inside `subscribe()`, before the adapter's forwarding
+    /// task is spawned, eviction is fully deterministic: there is no
+    /// scheduling race with the consumer.
+    struct PreloadedBus {
+        frames: Vec<Frame>,
+    }
+
+    #[async_trait]
+    impl Bus for PreloadedBus {
+        async fn publish(&self, _id: u8, _data: Option<Vec<u8>>) -> Result<(), Error> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _filters: Vec<crate::frame::Filter>,
+            opts: SubscriberOptions,
+        ) -> Result<crate::bus::FrameReceiver, Error> {
+            let depth = opts.chan_depth(64);
+            let inner = std::sync::Arc::new(crate::bus::SubInner::new(
+                depth,
+                opts.back_pressure,
+                opts.rate_limit_per_sec,
+            ));
+            for f in &self.frames {
+                inner.push(f.clone());
+            }
+            Ok(crate::bus::FrameReceiver { inner })
+        }
+
+        async fn close(&self) -> Result<(), Error> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn subscribe_drop_oldest_evicts_oldest_not_newest() {
+        use crate::relay::BackPressurePolicy;
+
+        let frames: Vec<Frame> = (1u8..=5)
+            .map(|id| Frame {
+                id,
+                data: vec![id],
+                ..Default::default()
+            })
+            .collect();
+        let bus = Arc::new(PreloadedBus { frames });
+        let node = adapt(bus);
+
+        let opts = SubscriberOptions {
+            channel_depth: 2,
+            back_pressure: BackPressurePolicy::DropOldest,
+            rate_limit_per_sec: 0,
+        };
+        let mut rx = node.subscribe(opts).await.unwrap();
+
+        // Frames 1..=5 arrive in order against a capacity-2 DropOldest
+        // queue: each arrival evicts the current oldest, so the two
+        // survivors are the two *most recent* frames (4, 5) — never the
+        // oldest. Before the fix, the adapter (a) hard-coded the bus
+        // subscription to DropNewest with a doubled capacity, and (b)
+        // re-applied a non-evicting `try_send` on top, which together
+        // yielded frames 1 and 2 instead — proving DropOldest had silently
+        // degraded to DropNewest-like behavior.
+        let first = rx.recv().await.expect("first frame delivered");
+        let second = rx.recv().await.expect("second frame delivered");
+        assert_eq!(
+            first.id.parse::<u8>().unwrap(),
+            4,
+            "oldest survivor must be frame 4, not an older frame"
+        );
+        assert_eq!(
+            second.id.parse::<u8>().unwrap(),
+            5,
+            "newest survivor must be frame 5"
+        );
+    }
+
+    #[tokio::test]
+    async fn subscribe_forwards_caller_rate_limit_per_sec() {
+        use crate::relay::BackPressurePolicy;
+
+        // Three frames are preloaded, all pushed synchronously (same
+        // rate-limit window) against `rate_limit_per_sec: 1`. If the
+        // adapter forwards the caller's real rate limit, only the first
+        // frame is accepted by `SubInner::push` and the other two are
+        // rejected before ever reaching the queue. Before the fix, the
+        // adapter hard-coded `rate_limit_per_sec: 0` (unlimited) on the
+        // bus subscription regardless of what the caller asked for, so all
+        // three frames would have been accepted and delivered.
+        let frames: Vec<Frame> = (1u8..=3)
+            .map(|id| Frame {
+                id,
+                data: vec![id],
+                ..Default::default()
+            })
+            .collect();
+        let bus = Arc::new(PreloadedBus { frames });
+        let node = adapt(bus);
+
+        let opts = SubscriberOptions {
+            channel_depth: 10,
+            back_pressure: BackPressurePolicy::DropNewest,
+            rate_limit_per_sec: 1,
+        };
+        let mut rx = node.subscribe(opts).await.unwrap();
+
+        let msg = rx.recv().await.expect("first frame delivered");
+        assert_eq!(msg.id.parse::<u8>().unwrap(), 1);
+
+        // No further frame should ever arrive: the second and third were
+        // rejected by the rate limiter before the forwarding task ever saw
+        // them, so this must time out rather than yield frame 2.
+        let second = tokio::time::timeout(std::time::Duration::from_millis(100), rx.recv()).await;
+        assert!(
+            second.is_err(),
+            "rate limiter was not honored — got a second frame when none should arrive"
+        );
     }
 }

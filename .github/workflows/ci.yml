@@ -53,8 +53,18 @@ jobs:
           cargo install cargo-llvm-cov --locked
           cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
           cargo llvm-cov report --summary-only | tee coverage-summary.txt
-          # Gate: overall line coverage must be ≥ 90 %
-          pct=$(grep -oP 'Lines\s+\K[\d.]+' coverage-summary.txt || echo "0")
+          # Informational only for now: this table's "Lines" column has its
+          # own "Cover" percentage as the 10th whitespace-separated field of
+          # the TOTAL row (Regions/Missed/Cover, Functions/Missed/Executed,
+          # Lines/Missed/Cover, Branches/Missed/Cover) -- the previous
+          # `grep -oP 'Lines\s+\K[\d.]+'` never matched this table's real
+          # layout (no row has the literal word "Lines" immediately
+          # followed by a number) and silently reported 0% every run,
+          # including on main before this fix. A genuine >=90% gate is not
+          # added here: real current coverage is ~86%, so enforcing 90%
+          # requires a dedicated test-writing pass, not a threshold picked
+          # to match today's number.
+          pct=$(awk '/^TOTAL/ { gsub("%", "", $10); print $10 }' coverage-summary.txt)
           echo "Line coverage: ${pct}%"
 
       - name: Upload coverage
@@ -150,8 +160,20 @@ jobs:
       - name: Static analysis
         run: rsfusa analyze --dir . --format json --output analyze-report.json || true
 
-      - name: Safety check (ASIL-B strict — §20.1.2)
-        run: rsfusa check --dir . --strict --format json --output check-report.json || true
+      - name: Safety check (ASIL-B — §20.1.2)
+        # Un-masked from `|| true` (rust-LIN-04.diff, this pass). Doing so
+        # revealed .fusa.json was in a stale/incompatible schema (missing
+        # the required "standard" field) -- rsfusa couldn't even parse it,
+        # so lint/analyze/check were all silently no-op-ing behind || true
+        # this whole time, not just check. Fixed .fusa.json to the current
+        # schema (matches rust-DDS's own working config) in this same
+        # commit. Deliberately NOT --strict: that additionally gates on
+        # every open WARNING finding, and this repo has 166 pre-existing
+        # ones with none yet dispositioned via rsfusa's own accept/defer
+        # mechanism -- forcing all-warnings-zero here needs a dedicated
+        # triage pass. ERROR-severity findings now genuinely gate either
+        # way, a real improvement over full || true masking.
+        run: rsfusa check --dir . --format json --output check-report.json
 
       - name: Safety check SARIF (GitHub code scanning)
         run: rsfusa check --dir . --format sarif --output results.sarif || true

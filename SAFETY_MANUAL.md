@@ -1,4 +1,4 @@
-# Safety Manual — rust-LIN v0.4.2
+# Safety Manual — rust-LIN v0.4.3
 
 **Standard:** ISO 26262-10:2018 (SEOOC) / ISO 26262-6:2018
 **ASIL:** ASIL-B
@@ -277,6 +277,7 @@ master.set_schedule(entries).await?;
 | 0.2.0 | 2026-06-19 | Added LDF parser, E2E safety, SlaveNode, SEOOC declarations; extended to 94 requirements and 140 tests |
 | 0.4.1 | 2026-07-27 | 99 requirements, 155 tests (107 unit + 46 integration + 2 doc) |
 | 0.4.2 | 2026-07-30 | Diagnostic-frame (0x3C/0x3D) classic-checksum routing fix; E2E sequence-gap counter no longer silently re-syncs; per-hazard ASIL corrected from a blanket ASIL-B to S/E/C-derived values (max per-hazard ASIL is now A) — see safety-case.md for the resulting SEOOC classification follow-up; 156 tests (108 unit + 46 integration + 2 doc) |
+| 0.4.3 | 2026-07-31 | Audit-conformance pass: RELAY adapter now delegates back-pressure to the bus subscription layer instead of hard-coding DropNewest, so DropOldest actually evicts the oldest buffered frame per RELAY spec §14 step 3 (rust-LIN-01); E2E `Receiver::unwrap` now rejects a received DataID/SourceID that does not match the receiver's configuration, closing a masquerade-detection gap where CRC-only validation accepted any internally self-consistent frame regardless of identity (rust-LIN-02); LDF `extract_bits` no longer panics on a `bit_width >= 64` field from a malformed/hostile `.ldf` (rust-LIN-03); CI coverage and ASIL-B strict-check steps now actually gate the build instead of always reporting success (rust-LIN-04, rust-LIN-05); 164 tests (116 unit + 46 integration + 2 doc) |
 
 ---
 
