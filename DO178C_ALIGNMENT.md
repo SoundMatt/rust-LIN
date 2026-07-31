@@ -1,4 +1,4 @@
-# DO-178C / ED-12C Alignment — rust-LIN v0.4.2
+# DO-178C / ED-12C Alignment — rust-LIN v0.4.3
 
 **Reference standard:** DO-178C / ED-12C (Software Considerations in Airborne Systems)
 **Applicable level:** DAL-C (equivalent to ASIL-B for cross-standard mapping)

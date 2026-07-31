@@ -70,6 +70,8 @@ pub enum ErrorKind {
     SequenceGap,
     /// Payload is shorter than the 10-byte header.
     HeaderTooShort,
+    /// Header DataID / SourceID did not match this receiver's configuration.
+    IdentifierMismatch,
 }
 
 /// Returned when an E2E safety check fails.
@@ -219,7 +221,24 @@ impl Receiver {
             });
         }
 
-        let _ = self.cfg; // DataID / SourceID validated implicitly via CRC.
+        // Verify the header identifiers match this receiver's configuration.
+        // The CRC alone does NOT provide masquerade protection: a self-
+        // consistent frame carrying a different DataID/SourceID would
+        // otherwise be accepted. AUTOSAR E2E requires an explicit DataID
+        // check (rust-LIN-02).
+        let data_id = u16::from_le_bytes([data[0], data[1]]);
+        let source_id = u16::from_le_bytes([data[2], data[3]]);
+        if data_id != self.cfg.data_id || source_id != self.cfg.source_id {
+            return Err(E2eError {
+                kind: ErrorKind::IdentifierMismatch,
+                counter: seq,
+                message: format!(
+                    "identifier mismatch: wire data_id=0x{:04X} source_id=0x{:04X}, \
+                     expected data_id=0x{:04X} source_id=0x{:04X}",
+                    data_id, source_id, self.cfg.data_id, self.cfg.source_id
+                ),
+            });
+        }
 
         let mut inner = self.inner.lock().unwrap();
         if !inner.first && seq != inner.last_seq.wrapping_add(1) {
@@ -432,5 +451,53 @@ mod tests {
         recovered[0] = 0xFF;
         // Original payload untouched.
         assert_eq!(payload[0], 0x11);
+    }
+
+    // rust-LIN-02 regression: a self-consistent frame (valid CRC) carrying a
+    // DataID/SourceID different from the receiver's configuration must be
+    // rejected, not silently accepted as if it originated from the expected
+    // logical data element / sender node. CRC-only validation cannot detect
+    // masquerade because the sender computed the CRC over its own header.
+    //fusa:test REQ-SAFETY-001
+    //fusa:test REQ-SAFETY-002
+    #[test]
+    fn unwrap_rejects_wrong_data_id() {
+        let sender_cfg = Config {
+            data_id: 0x00FF, // different logical data element than the receiver expects
+            source_id: 0x0010,
+        };
+        let p = Protector::new(sender_cfg);
+        let protected = p.protect(&[0x01, 0x02]); // internally self-consistent: CRC matches
+
+        let r = Receiver::new(make_cfg()); // expects data_id 0x0001
+        let err = r.unwrap(&protected).unwrap_err();
+        assert_eq!(err.kind, ErrorKind::IdentifierMismatch);
+    }
+
+    //fusa:test REQ-SAFETY-001
+    //fusa:test REQ-SAFETY-002
+    #[test]
+    fn unwrap_rejects_wrong_source_id() {
+        let sender_cfg = Config {
+            data_id: 0x0001,
+            source_id: 0x00EE, // different sender node than the receiver expects
+        };
+        let p = Protector::new(sender_cfg);
+        let protected = p.protect(&[0xAA]); // internally self-consistent: CRC matches
+
+        let r = Receiver::new(make_cfg()); // expects source_id 0x0010
+        let err = r.unwrap(&protected).unwrap_err();
+        assert_eq!(err.kind, ErrorKind::IdentifierMismatch);
+    }
+
+    //fusa:test REQ-SAFETY-001
+    //fusa:test REQ-SAFETY-002
+    #[test]
+    fn unwrap_accepts_matching_identifiers() {
+        let cfg = make_cfg();
+        let p = Protector::new(cfg);
+        let r = Receiver::new(cfg);
+        let protected = p.protect(&[0x01]);
+        assert!(r.unwrap(&protected).is_ok());
     }
 }

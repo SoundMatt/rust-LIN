@@ -56,6 +56,7 @@ jobs:
           # Gate: overall line coverage must be ≥ 90 %
           pct=$(grep -oP 'Lines\s+\K[\d.]+' coverage-summary.txt || echo "0")
           echo "Line coverage: ${pct}%"
+          awk -v p="$pct" 'BEGIN { if (p+0 < 90) { print "FAIL: line coverage " p "% < 90%"; exit 1 } }'
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && always()
@@ -151,7 +152,7 @@ jobs:
         run: rsfusa analyze --dir . --format json --output analyze-report.json || true
 
       - name: Safety check (ASIL-B strict — §20.1.2)
-        run: rsfusa check --dir . --strict --format json --output check-report.json || true
+        run: rsfusa check --dir . --strict --format json --output check-report.json
 
       - name: Safety check SARIF (GitHub code scanning)
         run: rsfusa check --dir . --format sarif --output results.sarif || true

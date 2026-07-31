@@ -515,6 +515,11 @@ fn parse_uint(s: &str) -> Option<u64> {
 fn extract_bits(data: &[u8], bit_offset: usize, bit_width: usize) -> u64 {
     let mut val: u64 = 0;
     for i in 0..bit_width {
+        // Guard against `1 << i` overflowing a u64 for signals wider than
+        // 64 bits declared in an untrusted LDF (rust-LIN-03).
+        if i >= 64 {
+            break;
+        }
         let byte_idx = (bit_offset + i) / 8;
         let bit_idx = (bit_offset + i) % 8;
         if byte_idx < data.len() && (data[byte_idx] & (1 << bit_idx)) != 0 {
@@ -693,5 +698,68 @@ Schedule_tables {
             db.frame(0x3F).is_none(),
             "mutation of copy must not affect Db"
         );
+    }
+
+    // rust-LIN-03 regression: `extract_bits` must not panic (debug builds:
+    // "attempt to shift left with overflow") when asked to extract a signal
+    // whose declared bit_width is >= 64. A LIN frame data field is capped at
+    // 8 bytes (64 bits) per LIN 2.x / ISO 17987, so any wider declaration is
+    // malformed/hostile input that the module's documented "never panics"
+    // contract requires surviving without crashing the process.
+    //fusa:test REQ-LDF-009
+    #[test]
+    fn extract_bits_does_not_panic_at_64_bits() {
+        let data = [0xFFu8; 16];
+        // bit_width == 64: the boundary value where `1u64 << i` at i == 64
+        // previously overflowed.
+        let val = extract_bits(&data, 0, 64);
+        assert_eq!(val, u64::MAX);
+    }
+
+    //fusa:test REQ-LDF-009
+    #[test]
+    fn extract_bits_does_not_panic_beyond_64_bits() {
+        let data = [0xFFu8; 32];
+        // A hostile/malformed bit_width far beyond what a u64 (or a LIN
+        // frame) can represent must not panic; bits >= 64 are simply not
+        // representable and are ignored.
+        let val = extract_bits(&data, 0, 128);
+        assert_eq!(val, u64::MAX);
+    }
+
+    // End-to-end fuzz-style regression: a hostile .ldf declaring a signal
+    // with bit_width >= 64 must not crash `decode()` when parsed and then
+    // used to decode a bus payload, per the module's documented contract
+    // ("Never panics; malformed input results in a partial Db or an error").
+    //fusa:test REQ-LDF-009
+    //fusa:test REQ-LDF-014
+    #[test]
+    fn decode_does_not_panic_on_oversized_signal_from_hostile_ldf() {
+        const HOSTILE_LDF: &str = r#"
+LIN_description_file;
+LIN_protocol_version = "2.1";
+LIN_language_version = "2.1";
+LIN_speed = 19.2 kbps;
+Nodes {
+  Master: ECU, 5 ms, 0.1 ms;
+  Slaves: Seat;
+}
+Signals {
+  HugeSig : 128, 0, ECU, Seat;
+}
+Frames {
+  HugeFrame : 0x30, ECU, 8 {
+    HugeSig, 0;
+  }
+}
+"#;
+        let db = parse(HOSTILE_LDF.as_bytes()).unwrap();
+        let sig = db.signal("HugeSig").expect("HugeSig signal parsed");
+        assert_eq!(sig.bit_width, 128);
+
+        // Must return without panicking, even though the frame only has 8
+        // bytes (64 bits) of actual data to satisfy a 128-bit signal.
+        let decoded = db.decode(0x30, &[0xFFu8; 8]).expect("frame 0x30 known");
+        assert_eq!(decoded.get("HugeSig"), Some(&u64::MAX));
     }
 }

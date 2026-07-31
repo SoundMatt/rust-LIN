@@ -96,7 +96,7 @@ testing, the same role `vcan`+`can-utils` plays for CAN and CycloneDDS plays
 for DDS. The two are separable; only the first is being scoped as real work
 below.
 
-### What exists today (rust-LIN v0.4.2)
+### What exists today (rust-LIN v0.4.3)
 
 Confirmed directly against the current `main` branch (an earlier
 ecosystem-audit note is superseded by this read — the LDF parser and E2E
