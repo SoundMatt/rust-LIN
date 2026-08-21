@@ -278,14 +278,18 @@ jobs:
       - name: RELAY conformance (strict)
         run: relay conform --strict ./target/release/rust-lin
 
-      - name: RELAY interop (LIN golden vectors — must be EQUIVALENT)
-        run: |
-          interop_out=$(relay interop ./target/release/rust-lin 2>&1) || true
-          echo "$interop_out"
-          if echo "$interop_out" | grep -A2 "(LIN)" | grep -qE "ERROR|FAIL"; then
-            echo "FAIL: one or more LIN golden vectors not EQUIVALENT"
-            exit 1
-          fi
+      - name: RELAY interop --strict --protocol LIN (LIN golden vectors — must be EQUIVALENT)
+        # Was previously `interop_out=$(relay interop ... 2>&1) || true` piped
+        # through a grep of stdout instead of the command's real exit code —
+        # that silently tolerated both a genuinely broken run and any future
+        # change to relay interop's output format (SoundMatt/RELAY THEME-K,
+        # INTEROP-04). --protocol LIN restricts the check to rust-lin's own
+        # protocol and --strict fails on a missing convert rather than
+        # treating it as an innocuous skip; the command's real exit code now
+        # gates this step directly, verified locally against the pinned
+        # relay v2.0.4 build this job installs (EQUIVALENT/PASS/exit 0 on a
+        # real convert implementation, FAIL/exit 1 on a broken one).
+        run: relay interop --strict --protocol LIN ./target/release/rust-lin
 
   # ── DCO sign-off check ─────────────────────────────────────────────────────
   dco:
